@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agentlens"
+name = "agentlens-proxy"
 version = "0.1.0"
 description = "Profile AI agents by intercepting LLM API traffic through a local MITM proxy"
 readme = "README.md"
