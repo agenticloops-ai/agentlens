@@ -175,22 +175,25 @@ class AgentLensAddon:
                 )
 
                 # Publish event
-                await self.event_bus.publish({
-                    "type": "new_request",
-                    "data": {
-                        "id": llm_request.id,
-                        "session_id": llm_request.session_id,
-                        "provider": llm_request.provider,
-                        "model": llm_request.model,
-                        "timestamp": llm_request.timestamp.isoformat(),
-                        "duration_ms": llm_request.duration_ms,
-                        "is_streaming": llm_request.is_streaming,
-                        "status": llm_request.status,
-                        "usage": llm_request.usage.model_dump(),
-                    },
-                })
+                await self.event_bus.publish(
+                    {
+                        "type": "new_request",
+                        "data": {
+                            "id": llm_request.id,
+                            "session_id": llm_request.session_id,
+                            "provider": llm_request.provider,
+                            "model": llm_request.model,
+                            "timestamp": llm_request.timestamp.isoformat(),
+                            "duration_ms": llm_request.duration_ms,
+                            "is_streaming": llm_request.is_streaming,
+                            "status": llm_request.status,
+                            "usage": llm_request.usage.model_dump(),
+                        },
+                    }
+                )
         except Exception:
             import traceback
+
             traceback.print_exc()
 
     def error(self, flow: http.HTTPFlow):

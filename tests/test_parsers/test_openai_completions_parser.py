@@ -257,9 +257,7 @@ class TestMCPDetection:
             "request_url": "https://api.openai.com/v1/chat/completions",
             "request_body": {
                 "model": "gpt-4o",
-                "messages": [
-                    {"role": "user", "content": "Read the file."}
-                ],
+                "messages": [{"role": "user", "content": "Read the file."}],
                 "tools": [
                     {
                         "type": "function",
@@ -268,9 +266,7 @@ class TestMCPDetection:
                             "description": "Read a file from the filesystem.",
                             "parameters": {
                                 "type": "object",
-                                "properties": {
-                                    "path": {"type": "string"}
-                                },
+                                "properties": {"path": {"type": "string"}},
                             },
                         },
                     }

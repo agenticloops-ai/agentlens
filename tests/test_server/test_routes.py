@@ -336,14 +336,8 @@ class TestRequestRoutes:
         session = _make_session()
         await session_repo.create(session)
 
-        await request_repo.create(
-            _make_llm_request(session.id, provider="anthropic")
-        )
-        await request_repo.create(
-            _make_llm_request(
-                session.id, provider="openai", model="gpt-4"
-            )
-        )
+        await request_repo.create(_make_llm_request(session.id, provider="anthropic"))
+        await request_repo.create(_make_llm_request(session.id, provider="openai", model="gpt-4"))
 
         resp = await client.get(
             f"/api/sessions/{session.id}/requests",
@@ -363,14 +357,8 @@ class TestRequestRoutes:
         session = _make_session()
         await session_repo.create(session)
 
-        await request_repo.create(
-            _make_llm_request(session.id, model="claude-3-opus")
-        )
-        await request_repo.create(
-            _make_llm_request(
-                session.id, model="gpt-4", provider="openai"
-            )
-        )
+        await request_repo.create(_make_llm_request(session.id, model="claude-3-opus"))
+        await request_repo.create(_make_llm_request(session.id, model="gpt-4", provider="openai"))
 
         resp = await client.get(
             f"/api/sessions/{session.id}/requests",
@@ -390,12 +378,8 @@ class TestRequestRoutes:
         session = _make_session()
         await session_repo.create(session)
 
-        await request_repo.create(
-            _make_llm_request(session.id, with_tools=True)
-        )
-        await request_repo.create(
-            _make_llm_request(session.id, with_tools=False)
-        )
+        await request_repo.create(_make_llm_request(session.id, with_tools=True))
+        await request_repo.create(_make_llm_request(session.id, with_tools=False))
 
         resp = await client.get(
             f"/api/sessions/{session.id}/requests",

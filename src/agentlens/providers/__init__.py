@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import importlib
 import pkgutil
-from typing import Any
 
 from agentlens.models import RawCapture
 
@@ -68,11 +67,13 @@ class PluginRegistry:
             meta = plugin.meta
             if meta.name not in seen:
                 seen.add(meta.name)
-                providers.append({
-                    "name": meta.name,
-                    "display_name": meta.display_name,
-                    "color": meta.color,
-                })
+                providers.append(
+                    {
+                        "name": meta.name,
+                        "display_name": meta.display_name,
+                        "color": meta.color,
+                    }
+                )
         return providers
 
     def get_provider_meta(self, name: str) -> ProviderMeta | None:

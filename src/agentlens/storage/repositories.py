@@ -27,6 +27,7 @@ from .database import llm_requests_table, raw_captures_table, sessions_table
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _dt_to_str(dt: datetime | None) -> str | None:
     if dt is None:
         return None
@@ -119,11 +120,7 @@ class SessionRepository:
 
     async def get(self, session_id: str) -> Session | None:
         async with self.engine.connect() as conn:
-            row = (
-                await conn.execute(
-                    select(sessions_table).where(sessions_table.c.id == session_id)
-                )
-            ).first()
+            row = (await conn.execute(select(sessions_table).where(sessions_table.c.id == session_id))).first()
         if row is None:
             return None
         return self._row_to_model(row)
@@ -141,14 +138,8 @@ class SessionRepository:
             .subquery()
         )
         async with self.engine.connect() as conn:
-            rows = (
-                await conn.execute(
-                    select(t).order_by(t.c.started_at.desc())
-                )
-            ).fetchall()
-            count_rows = (
-                await conn.execute(select(count_subq))
-            ).fetchall()
+            rows = (await conn.execute(select(t).order_by(t.c.started_at.desc()))).fetchall()
+            count_rows = (await conn.execute(select(count_subq))).fetchall()
         count_map = {cr._mapping["session_id"]: cr._mapping["computed_count"] for cr in count_rows}
         sessions = []
         for row in rows:
@@ -161,24 +152,14 @@ class SessionRepository:
         values = self._model_to_values(session)
         session_id = values.pop("id")
         async with self.engine.begin() as conn:
-            await conn.execute(
-                update(sessions_table)
-                .where(sessions_table.c.id == session_id)
-                .values(**values)
-            )
+            await conn.execute(update(sessions_table).where(sessions_table.c.id == session_id).values(**values))
         return session
 
     async def delete(self, session_id: str) -> None:
         async with self.engine.begin() as conn:
-            await conn.execute(
-                delete(raw_captures_table).where(raw_captures_table.c.session_id == session_id)
-            )
-            await conn.execute(
-                delete(llm_requests_table).where(llm_requests_table.c.session_id == session_id)
-            )
-            await conn.execute(
-                delete(sessions_table).where(sessions_table.c.id == session_id)
-            )
+            await conn.execute(delete(raw_captures_table).where(raw_captures_table.c.session_id == session_id))
+            await conn.execute(delete(llm_requests_table).where(llm_requests_table.c.session_id == session_id))
+            await conn.execute(delete(sessions_table).where(sessions_table.c.id == session_id))
 
     async def increment_stats(
         self,
@@ -214,26 +195,14 @@ class SessionRepository:
             ).first()
 
             # Fetch all usage blobs so we can sum token counts.
-            usage_rows = (
-                await conn.execute(
-                    select(t.c.usage).where(t.c.session_id == session_id)
-                )
-            ).fetchall()
+            usage_rows = (await conn.execute(select(t.c.usage).where(t.c.session_id == session_id))).fetchall()
 
             # Distinct models / providers.
             model_rows = (
-                await conn.execute(
-                    select(func.distinct(t.c.model)).where(
-                        t.c.session_id == session_id
-                    )
-                )
+                await conn.execute(select(func.distinct(t.c.model)).where(t.c.session_id == session_id))
             ).fetchall()
             provider_rows = (
-                await conn.execute(
-                    select(func.distinct(t.c.provider)).where(
-                        t.c.session_id == session_id
-                    )
-                )
+                await conn.execute(select(func.distinct(t.c.provider)).where(t.c.session_id == session_id))
             ).fetchall()
 
         total_requests = agg._mapping["total_requests"] if agg else 0  # type: ignore[union-attr]
@@ -305,9 +274,7 @@ class RequestRepository:
             system_prompt=_deserialize_system_prompt(m["system_prompt"]),
             messages=[Message.model_validate(msg) for msg in messages_raw],
             tools=[ToolDefinition.model_validate(t) for t in tools_raw],
-            response_messages=[
-                Message.model_validate(msg) for msg in response_messages_raw
-            ],
+            response_messages=[Message.model_validate(msg) for msg in response_messages_raw],
             stop_reason=StopReason(m["stop_reason"]) if m["stop_reason"] else None,
             usage=TokenUsage.model_validate(usage_raw),
             status=RequestStatus(m["status"]),
@@ -332,7 +299,9 @@ class RequestRepository:
             "top_p": request.top_p,
             "is_streaming": int(request.is_streaming),
             "tool_choice": _json_dumps(request.tool_choice),
-            "system_prompt": json.dumps(request.system_prompt) if isinstance(request.system_prompt, list) else request.system_prompt,
+            "system_prompt": json.dumps(request.system_prompt)
+            if isinstance(request.system_prompt, list)
+            else request.system_prompt,
             "messages": _json_dumps(request.messages),
             "tools": _json_dumps(request.tools),
             "response_messages": _json_dumps(request.response_messages),
@@ -353,13 +322,7 @@ class RequestRepository:
 
     async def get(self, request_id: str) -> LLMRequest | None:
         async with self.engine.connect() as conn:
-            row = (
-                await conn.execute(
-                    select(llm_requests_table).where(
-                        llm_requests_table.c.id == request_id
-                    )
-                )
-            ).first()
+            row = (await conn.execute(select(llm_requests_table).where(llm_requests_table.c.id == request_id))).first()
         if row is None:
             return None
         return self._row_to_model(row)
@@ -394,11 +357,7 @@ class RequestRepository:
     async def count_by_session(self, session_id: str) -> int:
         t = llm_requests_table
         async with self.engine.connect() as conn:
-            result = (
-                await conn.execute(
-                    select(func.count(t.c.id)).where(t.c.session_id == session_id)
-                )
-            ).scalar()
+            result = (await conn.execute(select(func.count(t.c.id)).where(t.c.session_id == session_id))).scalar()
         return result or 0
 
 
@@ -445,21 +404,15 @@ class RawCaptureRepository:
             "request_method": capture.request_method,
             "request_headers": json.dumps(capture.request_headers),
             "request_body": json.dumps(
-                capture.request_body
-                if isinstance(capture.request_body, dict)
-                else capture.request_body
+                capture.request_body if isinstance(capture.request_body, dict) else capture.request_body
             ),
             "response_status": capture.response_status,
             "response_headers": json.dumps(capture.response_headers),
             "response_body": json.dumps(
-                capture.response_body
-                if isinstance(capture.response_body, dict)
-                else capture.response_body
+                capture.response_body if isinstance(capture.response_body, dict) else capture.response_body
             ),
             "is_streaming": int(capture.is_streaming),
-            "sse_events": json.dumps(
-                [e if isinstance(e, dict) else e for e in capture.sse_events]
-            ),
+            "sse_events": json.dumps([e if isinstance(e, dict) else e for e in capture.sse_events]),
         }
 
     # -- public API --
@@ -472,13 +425,7 @@ class RawCaptureRepository:
 
     async def get(self, capture_id: str) -> RawCapture | None:
         async with self.engine.connect() as conn:
-            row = (
-                await conn.execute(
-                    select(raw_captures_table).where(
-                        raw_captures_table.c.id == capture_id
-                    )
-                )
-            ).first()
+            row = (await conn.execute(select(raw_captures_table).where(raw_captures_table.c.id == capture_id))).first()
         if row is None:
             return None
         return self._row_to_model(row)

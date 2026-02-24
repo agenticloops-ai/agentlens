@@ -43,14 +43,10 @@ def start(
         str(Path.home() / ".agentlens" / "data.db"),
         help="Path to SQLite database",
     ),
-    open_browser: bool = typer.Option(
-        True, "--open/--no-open", help="Open web UI in browser"
-    ),
+    open_browser: bool = typer.Option(True, "--open/--no-open", help="Open web UI in browser"),
 ):
     """Start the proxy and web UI."""
-    asyncio.run(
-        _start(proxy_port, web_port, host, session_name, db_path, open_browser)
-    )
+    asyncio.run(_start(proxy_port, web_port, host, session_name, db_path, open_browser))
 
 
 async def _start(
@@ -182,9 +178,7 @@ async def _start(
         console.print("[green]Session finalized. Goodbye![/green]")
 
 
-def _print_banner(
-    host: str, proxy_port: int, web_port: int, session: Session
-) -> None:
+def _print_banner(host: str, proxy_port: int, web_port: int, session: Session) -> None:
     """Print startup banner with configuration info."""
     banner = Text()
     banner.append("AgentLens", style="bold magenta")
@@ -196,12 +190,8 @@ def _print_banner(
     banner.append("  Session:  ", style="dim")
     banner.append(f"{session.name}\n\n", style="bold")
     banner.append("Configure your agent:\n", style="dim")
-    banner.append(
-        f"  export HTTP_PROXY=http://{host}:{proxy_port}\n", style="green"
-    )
-    banner.append(
-        f"  export HTTPS_PROXY=http://{host}:{proxy_port}\n", style="green"
-    )
+    banner.append(f"  export HTTP_PROXY=http://{host}:{proxy_port}\n", style="green")
+    banner.append(f"  export HTTPS_PROXY=http://{host}:{proxy_port}\n", style="green")
     banner.append(
         "  export REQUESTS_CA_BUNDLE=~/.mitmproxy/mitmproxy-ca-cert.pem\n",
         style="green",

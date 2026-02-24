@@ -33,9 +33,9 @@ _STOP_REASON_MAP: dict[str, StopReason] = {
 }
 
 
-def _parse_content_block_request(block: dict[str, Any], role: MessageRole) -> (
-    TextContent | ImageContent | ThinkingContent | ToolUseContent | ToolResultContent | None
-):
+def _parse_content_block_request(
+    block: dict[str, Any], role: MessageRole
+) -> TextContent | ImageContent | ThinkingContent | ToolUseContent | ToolResultContent | None:
     """Parse a single content block from a request message."""
     block_type = block.get("type", "")
 
@@ -77,9 +77,7 @@ def _parse_content_block_request(block: dict[str, Any], role: MessageRole) -> (
     return None
 
 
-def _parse_content_block_response(block: dict[str, Any]) -> (
-    TextContent | ThinkingContent | ToolUseContent | None
-):
+def _parse_content_block_response(block: dict[str, Any]) -> TextContent | ThinkingContent | ToolUseContent | None:
     """Parse a single content block from an assistant response."""
     block_type = block.get("type", "")
 
@@ -263,12 +261,14 @@ def _reassemble_streaming(sse_events: list[dict[str, Any]]) -> dict[str, Any]:
                     tool_input = json.loads(b["input_json"])
                 except json.JSONDecodeError:
                     tool_input = {}
-            content.append({
-                "type": "tool_use",
-                "id": b.get("id", ""),
-                "name": b.get("name", ""),
-                "input": tool_input,
-            })
+            content.append(
+                {
+                    "type": "tool_use",
+                    "id": b.get("id", ""),
+                    "name": b.get("name", ""),
+                    "input": tool_input,
+                }
+            )
         elif block_type == "thinking":
             content.append({"type": "thinking", "thinking": b["thinking"]})
 

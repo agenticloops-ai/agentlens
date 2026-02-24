@@ -321,9 +321,7 @@ class TestAnthropicToolCallingE2E:
         # Verify tool_use content block in response
         assert len(detail["response_messages"]) > 0
         resp_msg = detail["response_messages"][0]
-        has_tool_use = any(
-            block["type"] == "tool_use" for block in resp_msg["content"]
-        )
+        has_tool_use = any(block["type"] == "tool_use" for block in resp_msg["content"])
         assert has_tool_use, "Expected tool_use content block in response"
 
         # Verify stop_reason is tool_use
@@ -348,9 +346,7 @@ class TestThinkingBlocksE2E:
         # Verify ThinkingContent block exists in response_messages
         assert len(detail["response_messages"]) > 0
         resp_msg = detail["response_messages"][0]
-        thinking_blocks = [
-            block for block in resp_msg["content"] if block["type"] == "thinking"
-        ]
+        thinking_blocks = [block for block in resp_msg["content"] if block["type"] == "thinking"]
         assert len(thinking_blocks) > 0, "Expected ThinkingContent block in response"
 
         # Verify thinking text is populated
@@ -466,7 +462,4 @@ class TestNonLLMTraffic:
 
         # Verify no plugin can handle it
         plugin = env["plugin_registry"].get_plugin(raw)
-        assert plugin is None, (
-            "Expected no plugin to handle non-LLM traffic, "
-            f"but got {type(plugin).__name__}"
-        )
+        assert plugin is None, f"Expected no plugin to handle non-LLM traffic, but got {type(plugin).__name__}"

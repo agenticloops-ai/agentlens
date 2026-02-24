@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -59,6 +59,7 @@ def raw_capture_repo(engine: AsyncEngine) -> RawCaptureRepository:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_session(
     *,
@@ -186,9 +187,7 @@ class TestSessionRepository:
         result = await session_repo.get("does-not-exist")
         assert result is None
 
-    async def test_list_all_ordered_by_started_at_desc(
-        self, session_repo: SessionRepository
-    ) -> None:
+    async def test_list_all_ordered_by_started_at_desc(self, session_repo: SessionRepository) -> None:
         s1 = _make_session(name="first", started_at=datetime(2025, 1, 1))
         s2 = _make_session(name="second", started_at=datetime(2025, 1, 2))
         s3 = _make_session(name="third", started_at=datetime(2025, 1, 3))
@@ -232,9 +231,7 @@ class TestSessionRepository:
         fetched = await session_repo.get(session.id)
         assert fetched is None
 
-    async def test_delete_nonexistent_does_not_raise(
-        self, session_repo: SessionRepository
-    ) -> None:
+    async def test_delete_nonexistent_does_not_raise(self, session_repo: SessionRepository) -> None:
         # Should not raise even if the session doesn't exist.
         await session_repo.delete("nonexistent-id")
 
@@ -332,16 +329,10 @@ class TestRequestRepository:
         session = _make_session()
         await session_repo.create(session)
 
-        await request_repo.create(
-            _make_llm_request(session.id, provider="anthropic")
-        )
-        await request_repo.create(
-            _make_llm_request(session.id, provider="openai", model="gpt-4")
-        )
+        await request_repo.create(_make_llm_request(session.id, provider="anthropic"))
+        await request_repo.create(_make_llm_request(session.id, provider="openai", model="gpt-4"))
 
-        anthropic_only = await request_repo.list_by_session(
-            session.id, provider="anthropic"
-        )
+        anthropic_only = await request_repo.list_by_session(session.id, provider="anthropic")
         assert len(anthropic_only) == 1
         assert anthropic_only[0].provider == "anthropic"
 
@@ -353,16 +344,10 @@ class TestRequestRepository:
         session = _make_session()
         await session_repo.create(session)
 
-        await request_repo.create(
-            _make_llm_request(session.id, model="claude-3-opus")
-        )
-        await request_repo.create(
-            _make_llm_request(session.id, model="gpt-4", provider="openai")
-        )
+        await request_repo.create(_make_llm_request(session.id, model="claude-3-opus"))
+        await request_repo.create(_make_llm_request(session.id, model="gpt-4", provider="openai"))
 
-        opus_only = await request_repo.list_by_session(
-            session.id, model="claude-3-opus"
-        )
+        opus_only = await request_repo.list_by_session(session.id, model="claude-3-opus")
         assert len(opus_only) == 1
         assert opus_only[0].model == "claude-3-opus"
 
@@ -374,22 +359,14 @@ class TestRequestRepository:
         session = _make_session()
         await session_repo.create(session)
 
-        await request_repo.create(
-            _make_llm_request(session.id, with_tools=True)
-        )
-        await request_repo.create(
-            _make_llm_request(session.id, with_tools=False)
-        )
+        await request_repo.create(_make_llm_request(session.id, with_tools=True))
+        await request_repo.create(_make_llm_request(session.id, with_tools=False))
 
-        with_tools = await request_repo.list_by_session(
-            session.id, has_tools=True
-        )
+        with_tools = await request_repo.list_by_session(session.id, has_tools=True)
         assert len(with_tools) == 1
         assert len(with_tools[0].tools) > 0
 
-        without_tools = await request_repo.list_by_session(
-            session.id, has_tools=False
-        )
+        without_tools = await request_repo.list_by_session(session.id, has_tools=False)
         assert len(without_tools) == 1
         assert len(without_tools[0].tools) == 0
 
@@ -431,9 +408,7 @@ class TestRequestRepository:
         count = await request_repo.count_by_session(session.id)
         assert count == 3
 
-    async def test_count_by_session_empty(
-        self, request_repo: RequestRepository
-    ) -> None:
+    async def test_count_by_session_empty(self, request_repo: RequestRepository) -> None:
         count = await request_repo.count_by_session("nonexistent")
         assert count == 0
 
@@ -489,9 +464,7 @@ class TestSessionStats:
         assert set(stats.models_used) == {"claude-3-opus", "gpt-4"}
         assert set(stats.providers_used) == {"anthropic", "openai"}
 
-    async def test_get_stats_empty_session(
-        self, session_repo: SessionRepository
-    ) -> None:
+    async def test_get_stats_empty_session(self, session_repo: SessionRepository) -> None:
         session = _make_session()
         await session_repo.create(session)
 
@@ -536,9 +509,7 @@ class TestRawCaptureRepository:
         assert fetched.is_streaming is False
         assert fetched.sse_events == []
 
-    async def test_get_nonexistent(
-        self, raw_capture_repo: RawCaptureRepository
-    ) -> None:
+    async def test_get_nonexistent(self, raw_capture_repo: RawCaptureRepository) -> None:
         result = await raw_capture_repo.get("no-such-capture")
         assert result is None
 

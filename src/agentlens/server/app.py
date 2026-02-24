@@ -111,6 +111,8 @@ def create_app(
             index = _dist_dir / "index.html"
             if index.exists():
                 return FileResponse(str(index), media_type="text/html")
-            return HTMLResponse("<h1>Frontend not built</h1><p>Run <code>cd web && npm run build</code></p>", status_code=404)
+            return HTMLResponse(
+                "<h1>Frontend not built</h1><p>Run <code>cd web && npm run build</code></p>", status_code=404
+            )
 
     return app

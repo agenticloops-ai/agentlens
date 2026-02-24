@@ -133,8 +133,7 @@ def _render_markdown(
     lines.append(f"**Ended:** {ended}  ")
     lines.append(f"**Requests:** {stats.total_requests}  ")
     lines.append(
-        f"**Tokens:** {stats.total_tokens:,} "
-        f"(in: {stats.total_input_tokens:,} / out: {stats.total_output_tokens:,})  "
+        f"**Tokens:** {stats.total_tokens:,} (in: {stats.total_input_tokens:,} / out: {stats.total_output_tokens:,})  "
     )
     if stats.estimated_cost_usd:
         lines.append(f"**Cost:** ${stats.estimated_cost_usd:.4f}  ")
@@ -148,9 +147,7 @@ def _render_markdown(
 
     for i, req in enumerate(requests, 1):
         duration = _format_duration(req.duration_ms)
-        lines.append(
-            f"## Request #{i} — {req.model} ({req.provider}) — {duration}"
-        )
+        lines.append(f"## Request #{i} — {req.model} ({req.provider}) — {duration}")
         lines.append("")
 
         # System prompt
@@ -283,23 +280,25 @@ async def _export_csv(
     writer.writerow(CSV_COLUMNS)
 
     for req in requests:
-        writer.writerow([
-            req.timestamp.isoformat(),
-            str(req.provider),
-            req.model,
-            req.duration_ms,
-            req.time_to_first_token_ms,
-            str(req.status),
-            str(req.stop_reason) if req.stop_reason else "",
-            req.usage.input_tokens,
-            req.usage.output_tokens,
-            req.usage.total_tokens,
-            req.usage.estimated_cost_usd or "",
-            req.is_streaming,
-            len(req.tools) > 0,
-            _has_thinking(req),
-            _request_preview(req),
-        ])
+        writer.writerow(
+            [
+                req.timestamp.isoformat(),
+                str(req.provider),
+                req.model,
+                req.duration_ms,
+                req.time_to_first_token_ms,
+                str(req.status),
+                str(req.stop_reason) if req.stop_reason else "",
+                req.usage.input_tokens,
+                req.usage.output_tokens,
+                req.usage.total_tokens,
+                req.usage.estimated_cost_usd or "",
+                req.is_streaming,
+                len(req.tools) > 0,
+                _has_thinking(req),
+                _request_preview(req),
+            ]
+        )
 
     filename = _safe_filename(session.name) + ".csv"
 

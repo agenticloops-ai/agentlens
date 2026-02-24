@@ -10,7 +10,6 @@ from agentlens.models import (
     ToolUseContent,
 )
 from agentlens.models.enums import (
-    ContentBlockType,
     MessageRole,
     StopReason,
 )
@@ -349,12 +348,7 @@ class TestCostEstimation:
         )
         cost = AnthropicPlugin().estimate_cost("claude-sonnet-4-20250514", usage)
         assert cost is not None
-        expected = (
-            10000 * 3.00
-            + 5000 * 15.00
-            + 50000 * 3.75
-            + 20000 * 0.30
-        ) / 1_000_000
+        expected = (10000 * 3.00 + 5000 * 15.00 + 50000 * 3.75 + 20000 * 0.30) / 1_000_000
         assert abs(cost - expected) < 1e-10
 
     def test_messages_fixture_cost(self):
