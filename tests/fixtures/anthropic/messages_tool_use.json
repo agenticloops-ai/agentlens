@@ -1,0 +1,95 @@
+{
+  "request_url": "https://api.anthropic.com/v1/messages",
+  "request_headers": {
+    "x-api-key": "sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "anthropic-version": "2023-06-01",
+    "content-type": "application/json",
+    "user-agent": "Anthropic/Python 0.42.0"
+  },
+  "request_body": {
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens": 1024,
+    "messages": [
+      {
+        "role": "user",
+        "content": "What's the current stock price of AAPL?"
+      }
+    ],
+    "tools": [
+      {
+        "name": "get_stock_price",
+        "description": "Retrieves the current stock price and related market data for a given ticker symbol.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "symbol": {
+              "type": "string",
+              "description": "The stock ticker symbol, e.g. 'AAPL', 'GOOGL', 'MSFT'"
+            },
+            "include_history": {
+              "type": "boolean",
+              "description": "Whether to include 30-day price history"
+            }
+          },
+          "required": ["symbol"]
+        }
+      },
+      {
+        "name": "get_company_info",
+        "description": "Returns company profile information including sector, market cap, and description.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "symbol": {
+              "type": "string",
+              "description": "The stock ticker symbol"
+            }
+          },
+          "required": ["symbol"]
+        }
+      }
+    ],
+    "tool_choice": {
+      "type": "auto"
+    }
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "application/json",
+    "x-request-id": "req_01HiJkLmNoPqRsTuVwXyZa",
+    "anthropic-ratelimit-requests-limit": "4000",
+    "anthropic-ratelimit-requests-remaining": "3996",
+    "anthropic-ratelimit-tokens-limit": "400000",
+    "anthropic-ratelimit-tokens-remaining": "399100",
+    "request-id": "req_01HiJkLmNoPqRsTuVwXyZa"
+  },
+  "response_body": {
+    "id": "msg_01BcDeFgHiJkLmNoPqRsTu",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "I'll look up the current stock price of Apple (AAPL) for you."
+      },
+      {
+        "type": "tool_use",
+        "id": "toolu_01VwXyZaBcDeFgHiJkLmNo",
+        "name": "get_stock_price",
+        "input": {
+          "symbol": "AAPL",
+          "include_history": false
+        }
+      }
+    ],
+    "model": "claude-sonnet-4-20250514",
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 156,
+      "output_tokens": 72,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0
+    }
+  }
+}

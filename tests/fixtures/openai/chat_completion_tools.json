@@ -1,0 +1,115 @@
+{
+  "request_url": "https://api.openai.com/v1/chat/completions",
+  "request_headers": {
+    "authorization": "Bearer sk-proj-xxxxxxxxxxxxxxxxxxxx",
+    "content-type": "application/json",
+    "openai-organization": "org-abc123def456",
+    "user-agent": "OpenAI/Python 1.52.0"
+  },
+  "request_body": {
+    "model": "gpt-4o",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What's the weather like in San Francisco right now?"
+      },
+      {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_vp3J8k2Lm9Nq1Rs4Tu6Wxy",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"location\": \"San Francisco, CA\", \"unit\": \"fahrenheit\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_vp3J8k2Lm9Nq1Rs4Tu6Wxy",
+        "content": "{\"temperature\": 62, \"unit\": \"fahrenheit\", \"condition\": \"Partly cloudy\", \"humidity\": 72, \"wind_speed\": 12, \"wind_direction\": \"WSW\"}"
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_weather",
+          "description": "Get the current weather conditions for a given location.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string",
+                "description": "The city and state, e.g. 'San Francisco, CA'"
+              },
+              "unit": {
+                "type": "string",
+                "enum": ["celsius", "fahrenheit"],
+                "description": "The temperature unit to use."
+              }
+            },
+            "required": ["location"],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      }
+    ],
+    "tool_choice": "auto",
+    "temperature": 0.7,
+    "max_tokens": 1024
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "application/json",
+    "openai-model": "gpt-4o-2024-08-06",
+    "openai-organization": "org-abc123def456",
+    "openai-processing-ms": "1156",
+    "openai-version": "2020-10-01",
+    "x-ratelimit-limit-requests": "10000",
+    "x-ratelimit-limit-tokens": "800000",
+    "x-ratelimit-remaining-requests": "9994",
+    "x-ratelimit-remaining-tokens": "798834",
+    "x-ratelimit-reset-requests": "32ms",
+    "x-ratelimit-reset-tokens": "87ms",
+    "x-request-id": "req_z9y8x7w6v5u4t3s2r1q0"
+  },
+  "response_body": {
+    "id": "chatcmpl-F8gH0iJ2kL4mN6oP8qR0sT",
+    "object": "chat.completion",
+    "created": 1740269100,
+    "model": "gpt-4o-2024-08-06",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "The current weather in San Francisco is **62\u00b0F** (partly cloudy). Here are the details:\n\n- **Condition:** Partly cloudy\n- **Temperature:** 62\u00b0F\n- **Humidity:** 72%\n- **Wind:** 12 mph from the WSW\n\nIt's a mild day with some clouds. A light jacket should be sufficient if you're heading out!",
+          "refusal": null
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 152,
+      "completion_tokens": 78,
+      "total_tokens": 230,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "system_fingerprint": "fp_e5e2a1b7c3"
+  }
+}

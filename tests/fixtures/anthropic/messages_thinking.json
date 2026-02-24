@@ -1,0 +1,59 @@
+{
+  "request_url": "https://api.anthropic.com/v1/messages",
+  "request_headers": {
+    "x-api-key": "sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "anthropic-version": "2023-06-01",
+    "anthropic-beta": "interleaved-thinking-2025-05-14",
+    "content-type": "application/json",
+    "user-agent": "Anthropic/Python 0.42.0"
+  },
+  "request_body": {
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens": 16000,
+    "thinking": {
+      "type": "enabled",
+      "budget_tokens": 10000
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "How many r's are in the word \"strawberry\"?"
+      }
+    ]
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "application/json",
+    "x-request-id": "req_01PqRsTuVwXyZaBcDeFgHi",
+    "anthropic-ratelimit-requests-limit": "4000",
+    "anthropic-ratelimit-requests-remaining": "3995",
+    "anthropic-ratelimit-tokens-limit": "400000",
+    "anthropic-ratelimit-tokens-remaining": "398000",
+    "request-id": "req_01PqRsTuVwXyZaBcDeFgHi"
+  },
+  "response_body": {
+    "id": "msg_01WxYzAbCdEfGhIjKlMnOp",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "The user is asking me to count the number of r's in the word \"strawberry\". Let me spell it out carefully:\n\ns-t-r-a-w-b-e-r-r-y\n\nLet me go through each letter:\n1. s - not an r\n2. t - not an r\n3. r - this is an r (count: 1)\n4. a - not an r\n5. w - not an r\n6. b - not an r\n7. e - not an r\n8. r - this is an r (count: 2)\n9. r - this is an r (count: 3)\n10. y - not an r\n\nSo there are 3 r's in \"strawberry\"."
+      },
+      {
+        "type": "text",
+        "text": "There are **3** r's in the word \"strawberry\".\n\nLet me break it down: **s-t-r-a-w-b-e-r-r-y**\n\n1. The first 'r' is the 3rd letter\n2. The second 'r' is the 8th letter\n3. The third 'r' is the 9th letter"
+      }
+    ],
+    "model": "claude-sonnet-4-20250514",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 22,
+      "output_tokens": 165,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "thinking_tokens": 127
+    }
+  }
+}

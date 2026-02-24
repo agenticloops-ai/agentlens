@@ -1,0 +1,244 @@
+import { useRef, useEffect, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { useSession, useSessionRequests } from "../api/hooks";
+import { RequestTimeline } from "../components/request/RequestTimeline";
+import { TokenUsageChart } from "../components/stats/TokenUsageChart";
+import { LatencyChart } from "../components/stats/LatencyChart";
+import { CostSummary } from "../components/stats/CostSummary";
+import { ExportMenu } from "../components/common/ExportMenu";
+import { useProviderMeta } from "../hooks/useProviderMeta";
+
+/** Ensure an ISO timestamp is treated as UTC (server stores naive UTC without Z). */
+function utc(iso: string): number {
+  return new Date(iso.endsWith("Z") ? iso : iso + "Z").getTime();
+}
+
+function formatDuration(startedAt: string, endedAt: string | null): string {
+  const end = endedAt ? utc(endedAt) : Date.now();
+  const ms = end - utc(startedAt);
+  const seconds = Math.floor(ms / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  if (minutes < 60) return `${minutes}m ${remainingSeconds}s`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+}
+
+function StatBox({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+}) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-gray-500 mb-0.5">
+        {label}
+      </div>
+      <div className="text-sm font-semibold text-gray-200 leading-tight">{value}</div>
+      {sub && <div className="text-[11px] text-gray-500">{sub}</div>}
+    </div>
+  );
+}
+
+export function SessionDetailPage() {
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const { data: session, isLoading: sessionLoading } = useSession(sessionId ?? "");
+  const { data: requests, isLoading: requestsLoading } = useSessionRequests(
+    sessionId ?? "",
+  );
+
+  const safeRequests = requests ?? [];
+
+  // -------------------------------------------------------------------------
+  // All hooks MUST be above any early returns (Rules of Hooks)
+  // -------------------------------------------------------------------------
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const userScrolledUp = useRef(false);
+  const prevRequestCount = useRef(safeRequests.length);
+
+  const getProvider = useProviderMeta();
+
+  const handleTimelineScroll = useCallback(() => {
+    const el = timelineRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    userScrolledUp.current = !atBottom;
+  }, []);
+
+  useEffect(() => {
+    if (safeRequests.length > prevRequestCount.current && !userScrolledUp.current) {
+      const el = timelineRef.current;
+      if (el) {
+        el.scrollTop = el.scrollHeight;
+      }
+    }
+    prevRequestCount.current = safeRequests.length;
+  }, [safeRequests.length]);
+
+  // -------------------------------------------------------------------------
+  // Early returns (after all hooks)
+  // -------------------------------------------------------------------------
+
+  if (sessionLoading || requestsLoading) {
+    return (
+      <div className="flex items-center gap-3 py-16 justify-center">
+        <div className="h-5 w-5 rounded-full border-2 border-gray-600 border-t-blue-500 animate-spin" />
+        <span className="text-sm text-gray-400">Loading session...</span>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="text-gray-400 text-sm py-16 text-center">
+        Session not found
+      </div>
+    );
+  }
+
+  const isActive = !session.ended_at;
+  const stats = session.stats;
+
+  return (
+    <div className="flex flex-col lg:flex-row gap-4 h-full">
+      {/* Left panel: Request timeline */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        <div
+          ref={timelineRef}
+          onScroll={handleTimelineScroll}
+          className="flex-1 bg-gray-800/40 border border-gray-700 rounded-lg overflow-y-auto flex flex-col"
+        >
+          {/* Session header (inside the timeline card so tops align) */}
+          <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-700">
+            <div className="min-w-0">
+              <h1 className="text-base font-bold text-gray-100 truncate">
+                {session.name || "Unnamed Session"}
+              </h1>
+              <div className="flex items-center gap-3 text-xs text-gray-500">
+                {isActive && (
+                  <span className="flex items-center gap-1.5 text-green-400">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                    </span>
+                    Active
+                  </span>
+                )}
+                <span>{formatDuration(session.started_at, session.ended_at)}</span>
+                <span>{stats.total_requests} requests</span>
+              </div>
+            </div>
+            <ExportMenu
+              sessionId={sessionId ?? ""}
+              sessionName={session.name || "session"}
+            />
+          </div>
+
+          {/* Timeline rows */}
+          <RequestTimeline
+            requests={safeRequests}
+            sessionId={sessionId ?? ""}
+            sessionStartedAt={session.started_at}
+          />
+        </div>
+      </div>
+
+      {/* Right panel: Stats (compact) */}
+      <div className="w-full lg:w-72 shrink-0 space-y-3">
+        {/* Quick stats */}
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-3">
+          <h2 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
+            Session Stats
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            <StatBox
+              label="Total Requests"
+              value={String(stats.total_requests)}
+            />
+            <StatBox
+              label="Total Tokens"
+              value={stats.total_tokens.toLocaleString()}
+              sub={`In: ${stats.total_input_tokens.toLocaleString()} / Out: ${stats.total_output_tokens.toLocaleString()}`}
+            />
+            <StatBox
+              label="Avg Duration"
+              value={
+                stats.avg_duration_ms != null
+                  ? stats.avg_duration_ms >= 1000
+                    ? `${(stats.avg_duration_ms / 1000).toFixed(1)}s`
+                    : `${Math.round(stats.avg_duration_ms)}ms`
+                  : "--"
+              }
+            />
+            <StatBox
+              label="Avg Tokens/Req"
+              value={
+                stats.avg_tokens_per_request != null
+                  ? Math.round(stats.avg_tokens_per_request).toLocaleString()
+                  : "--"
+              }
+            />
+          </div>
+
+          {/* Provider / model badges */}
+          {(stats.providers_used.length > 0 || stats.models_used.length > 0) && (
+            <div className="mt-2 pt-2 border-t border-gray-700">
+              <div className="flex flex-wrap gap-1">
+                {stats.providers_used.map((p) => {
+                  const meta = getProvider(p);
+                  return (
+                    <span
+                      key={p}
+                      className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium"
+                      style={{ backgroundColor: `${meta.color}20`, color: meta.color }}
+                    >
+                      {p}
+                    </span>
+                  );
+                })}
+                {stats.models_used.map((m) => (
+                  <span
+                    key={m}
+                    className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-700 text-gray-300"
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Cost summary (compact — total + avg on one line) */}
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-3">
+          <h2 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
+            Cost
+          </h2>
+          <CostSummary stats={stats} requests={safeRequests} />
+        </div>
+
+        {/* Token usage chart */}
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-3">
+          <h2 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
+            Token Usage
+          </h2>
+          <TokenUsageChart requests={safeRequests} />
+        </div>
+
+        {/* Latency chart */}
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-3">
+          <h2 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
+            Latency
+          </h2>
+          <LatencyChart requests={safeRequests} />
+        </div>
+      </div>
+    </div>
+  );
+}

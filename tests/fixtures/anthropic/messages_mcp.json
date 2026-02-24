@@ -1,0 +1,165 @@
+{
+  "request_url": "https://api.anthropic.com/v1/messages",
+  "request_headers": {
+    "x-api-key": "sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "anthropic-version": "2023-06-01",
+    "content-type": "application/json",
+    "user-agent": "Anthropic/Python 0.42.0"
+  },
+  "request_body": {
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens": 4096,
+    "system": "You are a helpful coding assistant with access to filesystem and GitHub tools via MCP servers.",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Read the contents of /home/user/project/README.md and then create a GitHub issue summarizing any missing documentation sections."
+      }
+    ],
+    "tools": [
+      {
+        "name": "mcp__filesystem__read_file",
+        "description": "Read the complete contents of a file from the filesystem. The file path must be absolute. Returns the file contents as a UTF-8 string.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "The absolute path to the file to read"
+            }
+          },
+          "required": ["path"]
+        }
+      },
+      {
+        "name": "mcp__filesystem__write_file",
+        "description": "Write content to a file on the filesystem. Creates the file if it does not exist, or overwrites it if it does. The file path must be absolute.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "The absolute path to the file to write"
+            },
+            "content": {
+              "type": "string",
+              "description": "The content to write to the file"
+            }
+          },
+          "required": ["path", "content"]
+        }
+      },
+      {
+        "name": "mcp__filesystem__list_directory",
+        "description": "List the contents of a directory. Returns file and directory names with type indicators.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "The absolute path to the directory to list"
+            }
+          },
+          "required": ["path"]
+        }
+      },
+      {
+        "name": "mcp__github__create_issue",
+        "description": "Create a new issue in a GitHub repository. Returns the issue URL and number.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "owner": {
+              "type": "string",
+              "description": "The repository owner (user or organization)"
+            },
+            "repo": {
+              "type": "string",
+              "description": "The repository name"
+            },
+            "title": {
+              "type": "string",
+              "description": "The title of the issue"
+            },
+            "body": {
+              "type": "string",
+              "description": "The body/description of the issue in Markdown format"
+            },
+            "labels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Labels to apply to the issue"
+            }
+          },
+          "required": ["owner", "repo", "title"]
+        }
+      },
+      {
+        "name": "mcp__github__list_issues",
+        "description": "List issues in a GitHub repository with optional filters for state, labels, and assignee.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "owner": {
+              "type": "string",
+              "description": "The repository owner"
+            },
+            "repo": {
+              "type": "string",
+              "description": "The repository name"
+            },
+            "state": {
+              "type": "string",
+              "enum": ["open", "closed", "all"],
+              "description": "Filter by issue state"
+            }
+          },
+          "required": ["owner", "repo"]
+        }
+      }
+    ],
+    "tool_choice": {
+      "type": "auto"
+    }
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "application/json",
+    "x-request-id": "req_01CdEfGhIjKlMnOpQrStUv",
+    "anthropic-ratelimit-requests-limit": "4000",
+    "anthropic-ratelimit-requests-remaining": "3993",
+    "anthropic-ratelimit-tokens-limit": "400000",
+    "anthropic-ratelimit-tokens-remaining": "397500",
+    "request-id": "req_01CdEfGhIjKlMnOpQrStUv"
+  },
+  "response_body": {
+    "id": "msg_01QrStUvWxYzAbCdEfGhIj",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "I'll start by reading the README.md file to understand the current documentation."
+      },
+      {
+        "type": "tool_use",
+        "id": "toolu_01KlMnOpQrStUvWxYzAbCd",
+        "name": "mcp__filesystem__read_file",
+        "input": {
+          "path": "/home/user/project/README.md"
+        }
+      }
+    ],
+    "model": "claude-sonnet-4-20250514",
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 482,
+      "output_tokens": 84,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0
+    }
+  }
+}

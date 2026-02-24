@@ -1,0 +1,54 @@
+{
+  "request_url": "https://api.anthropic.com/v1/messages",
+  "request_headers": {
+    "x-api-key": "sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "anthropic-version": "2023-06-01",
+    "content-type": "application/json",
+    "anthropic-beta": "prompt-caching-2024-07-31",
+    "user-agent": "Anthropic/Python 0.42.0"
+  },
+  "request_body": {
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens": 1024,
+    "system": "You are an expert software engineer. Provide clear, concise technical explanations with code examples when appropriate.",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is a Python context manager and when should I use one?"
+      }
+    ],
+    "temperature": 0.7
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "application/json",
+    "x-request-id": "req_01JMbK3nP5qR7sT9vW1xY3z",
+    "anthropic-ratelimit-requests-limit": "4000",
+    "anthropic-ratelimit-requests-remaining": "3998",
+    "anthropic-ratelimit-requests-reset": "2025-02-22T15:30:00Z",
+    "anthropic-ratelimit-tokens-limit": "400000",
+    "anthropic-ratelimit-tokens-remaining": "399200",
+    "anthropic-ratelimit-tokens-reset": "2025-02-22T15:30:00Z",
+    "request-id": "req_01JMbK3nP5qR7sT9vW1xY3z"
+  },
+  "response_body": {
+    "id": "msg_01XyZ2AbC3dEf4GhI5jKlMn",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "A **context manager** in Python is an object that defines setup and teardown logic for a block of code, using the `with` statement. It ensures resources are properly acquired and released, even if exceptions occur.\n\n## How It Works\n\nA context manager implements two methods:\n- `__enter__()` \u2014 called when entering the `with` block; returns the resource\n- `__exit__(exc_type, exc_val, exc_tb)` \u2014 called when leaving the block; handles cleanup\n\n## Basic Example\n\n```python\n# File handling \u2014 the most common use case\nwith open('data.txt', 'r') as f:\n    contents = f.read()\n# File is automatically closed here, even if an exception occurred\n```\n\n## When to Use One\n\n1. **Resource management** \u2014 files, database connections, network sockets\n2. **Lock acquisition** \u2014 threading locks that must be released\n3. **Temporary state changes** \u2014 changing and restoring working directories, environment variables\n4. **Transaction management** \u2014 database transactions that need commit/rollback\n\n## Writing Your Own\n\nThe simplest approach uses `contextlib.contextmanager`:\n\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef timer(label):\n    start = time.perf_counter()\n    yield\n    elapsed = time.perf_counter() - start\n    print(f\"{label}: {elapsed:.3f}s\")\n\nwith timer(\"database query\"):\n    results = db.execute(query)\n```\n\nUse a context manager whenever you have paired setup/teardown operations that must execute reliably."
+      }
+    ],
+    "model": "claude-sonnet-4-20250514",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 38,
+      "output_tokens": 296,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0
+    }
+  }
+}

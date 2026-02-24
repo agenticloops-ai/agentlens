@@ -1,0 +1,76 @@
+{
+  "request_url": "https://api.openai.com/v1/chat/completions",
+  "request_headers": {
+    "authorization": "Bearer sk-proj-xxxxxxxxxxxxxxxxxxxx",
+    "content-type": "application/json",
+    "openai-organization": "org-abc123def456",
+    "user-agent": "OpenAI/Python 1.52.0"
+  },
+  "request_body": {
+    "model": "gpt-4o",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant that provides concise, well-structured answers."
+      },
+      {
+        "role": "user",
+        "content": "Explain the difference between TCP and UDP in networking."
+      }
+    ],
+    "temperature": 0.7,
+    "max_tokens": 1024,
+    "top_p": 1.0,
+    "frequency_penalty": 0,
+    "presence_penalty": 0
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "application/json",
+    "openai-model": "gpt-4o-2024-08-06",
+    "openai-organization": "org-abc123def456",
+    "openai-processing-ms": "1842",
+    "openai-version": "2020-10-01",
+    "x-ratelimit-limit-requests": "10000",
+    "x-ratelimit-limit-tokens": "800000",
+    "x-ratelimit-remaining-requests": "9997",
+    "x-ratelimit-remaining-tokens": "799012",
+    "x-ratelimit-reset-requests": "18ms",
+    "x-ratelimit-reset-tokens": "74ms",
+    "x-request-id": "req_a1b2c3d4e5f6g7h8i9j0"
+  },
+  "response_body": {
+    "id": "chatcmpl-B7kL9mN2pQ4rS6tU8vW0xY",
+    "object": "chat.completion",
+    "created": 1740268800,
+    "model": "gpt-4o-2024-08-06",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "TCP (Transmission Control Protocol) and UDP (User Datagram Protocol) are both transport-layer protocols, but they differ in key ways:\n\n**TCP:**\n- **Connection-oriented:** Establishes a connection via a three-way handshake before data transfer.\n- **Reliable delivery:** Guarantees that packets arrive in order and retransmits lost packets.\n- **Flow control:** Uses windowing mechanisms to prevent overwhelming the receiver.\n- **Use cases:** Web browsing (HTTP/HTTPS), email (SMTP), file transfers (FTP), SSH.\n\n**UDP:**\n- **Connectionless:** Sends datagrams without establishing a connection first.\n- **No guaranteed delivery:** Packets may arrive out of order, be duplicated, or be lost entirely.\n- **Lower overhead:** No handshake or acknowledgment mechanisms, resulting in faster transmission.\n- **Use cases:** Video streaming, online gaming, DNS lookups, VoIP.\n\nIn short, choose TCP when reliability matters and UDP when speed and low latency are more important than guaranteed delivery.",
+          "refusal": null
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 34,
+      "completion_tokens": 187,
+      "total_tokens": 221,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "system_fingerprint": "fp_e5e2a1b7c3"
+  }
+}

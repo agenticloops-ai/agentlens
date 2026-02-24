@@ -1,0 +1,5 @@
+{
+  "name": "agentlens-workspace",
+  "private": true,
+  "workspaces": ["web"]
+}
