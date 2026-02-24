@@ -11,9 +11,14 @@ Profile AI agents by intercepting LLM API traffic through a local MITM proxy. Un
 ## Install
 
 ```bash
-git clone https://github.com/agenticloops/agentlens.git
-cd agentlens
+pip install agentlens-proxy
+```
 
+### From source
+
+```bash
+git clone https://github.com/agenticloops-ai/agentlens.git
+cd agentlens
 make install
 ```
 
