@@ -1,10 +1,15 @@
-.PHONY: dev proxy web build generate-types test lint install publish review
+.PHONY: dev proxy web build generate-types test lint install ci publish review
 
 install:
 	uv sync --extra dev
 	cd web && npm install
 	$(MAKE) build
 	ln -sfn $$(pwd)/web/dist src/agentlens/static
+
+ci:
+	mkdir -p web/dist
+	uv sync --extra dev
+	cd web && npm ci
 
 dev:
 	@echo "Starting proxy and web server..."

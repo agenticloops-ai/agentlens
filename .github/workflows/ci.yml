@@ -23,17 +23,10 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: |
-          uv sync --extra dev
-          cd web && npm ci
+        run: make ci
 
-      - name: Lint Python
-        run: |
-          uv run ruff check src/ tests/
-          uv run ruff format --check src/ tests/
-
-      - name: Lint frontend
-        run: cd web && npm run lint
+      - name: Lint
+        run: make lint
 
       - name: Test
-        run: uv run pytest -v
+        run: make test
