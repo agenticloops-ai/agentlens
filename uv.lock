@@ -8,8 +8,8 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "agentlens"
-version = "0.1.0"
+name = "agentlens-proxy"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "aiosqlite" },

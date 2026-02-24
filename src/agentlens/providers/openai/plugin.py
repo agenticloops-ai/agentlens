@@ -108,7 +108,12 @@ def _convert_input(raw_input: Any) -> tuple[str | None, list[Message]]:
         item_type = item.get("type", "")
 
         if role == "system" or item_type == "system":
-            system_prompt = item.get("content", "") or item.get("text", "")
+            raw_content = item.get("content", "") or item.get("text", "")
+            if isinstance(raw_content, list):
+                parts = [b.get("text", "") for b in raw_content if isinstance(b, dict) and b.get("text")]
+                system_prompt = "\n".join(parts) if parts else None
+            elif isinstance(raw_content, str):
+                system_prompt = raw_content or None
             continue
 
         if role == "user" or item_type == "message" and item.get("role") == "user":
@@ -379,6 +384,11 @@ class OpenAIPlugin(ProviderPlugin):
 
         model = body.get("model", "")
         instructions = body.get("instructions")
+        # instructions can be a string or a list of content blocks
+        # e.g. [{"type": "input_text", "text": "..."}]
+        if isinstance(instructions, list):
+            parts = [b.get("text", "") for b in instructions if isinstance(b, dict) and b.get("text")]
+            instructions = "\n".join(parts) if parts else None
         temperature = body.get("temperature")
         max_tokens = body.get("max_output_tokens") or body.get("max_tokens")
         top_p = body.get("top_p")
