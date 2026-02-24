@@ -1,4 +1,4 @@
-.PHONY: dev proxy web build generate-types test lint install ci publish review
+.PHONY: dev proxy web build generate-types test lint install ci review
 
 install:
 	mkdir -p web/dist
@@ -36,11 +36,6 @@ lint:
 	uv run ruff format --check src/ tests/
 	cd web && npm run lint
 
-publish:
-	@test -n "$$UV_PUBLISH_TOKEN" || { echo "Set UV_PUBLISH_TOKEN with a PyPI API token first"; exit 1; }
-	cd web && npm install && npm run build
-	uv build
-	uv publish
 
 review:
 	@BASE=$${BASE:-main}; \

@@ -24,11 +24,8 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Build frontend
-        run: cd web && npm ci && npm run build
-
-      - name: Build package
-        run: uv build
+      - name: Install & build
+        run: make ci && make build && uv build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
