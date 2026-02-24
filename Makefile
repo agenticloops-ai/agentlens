@@ -1,6 +1,7 @@
 .PHONY: dev proxy web build generate-types test lint install ci publish review
 
 install:
+	mkdir -p web/dist
 	uv sync --extra dev
 	cd web && npm install
 	$(MAKE) build
