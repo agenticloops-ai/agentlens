@@ -87,7 +87,7 @@ def create_app(
     app.include_router(providers_router)
 
     # Serve built React frontend from web/dist/ if available.
-    _dist_dir = Path(__file__).resolve().parent.parent.parent.parent / "web" / "dist"
+    _dist_dir = Path(__file__).resolve().parent.parent / "static"
     if _dist_dir.is_dir():
         # Mount static assets (JS, CSS, images) under /assets.
         _assets_dir = _dist_dir / "assets"

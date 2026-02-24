@@ -11,6 +11,7 @@ node_modules/
 web/dist/
 *.db
 *.sqlite
+src/agentlens/static
 .ruff_cache/
 .pytest_cache/
 .mypy_cache/

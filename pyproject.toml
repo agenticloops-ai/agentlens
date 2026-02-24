@@ -35,6 +35,15 @@ agentlens = "agentlens.cli:app"
 [tool.hatch.build.targets.wheel]
 packages = ["src/agentlens"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"web/dist" = "agentlens/static"
+
+[tool.hatch.build.targets.sdist]
+include = ["src/agentlens", "web/dist", "pyproject.toml", "README.md"]
+
+[tool.hatch.build.targets.sdist.force-include]
+"web/dist" = "web/dist"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
