@@ -2,6 +2,41 @@
 
 Profile AI agents by intercepting LLM API traffic through a local MITM proxy. Understand how agents work: prompts, tools, MCP, token usage, costs, and timing — all in a real-time web UI.
 
+
+![AgentLens](./docs/agentlens.gif)
+
+
+## Supported Providers
+
+| Provider | Hosts | Endpoints |
+|----------|-------|-----------|
+| **Anthropic** | `api.anthropic.com` | `/v1/messages` |
+| **OpenAI** | `api.openai.com` | `/v1/chat/completions`, `/v1/responses` |
+| **Google Gemini** | `generativelanguage.googleapis.com`, `cloudcode-pa.googleapis.com` | `:generateContent`, `:streamGenerateContent` |
+| **GitHub Copilot** | `api.individual.githubcopilot.com`, `api.business.githubcopilot.com`, `api.enterprise.githubcopilot.com` | All of the above (auto-detected by host) |
+
+All other HTTP traffic passes through the proxy transparently without being captured or stored.
+
+Providers are auto-discovered plugins — adding a new one requires no changes to core code.
+
+## Quickstart
+
+```bash
+# 1. Install
+pip install agentlens-proxy
+
+# 2. Start the profiler (opens web UI automatically)
+agentlens start
+
+# 3. In another terminal, run your agent through the proxy
+HTTP_PROXY=http://127.0.0.1:8080 \
+HTTPS_PROXY=http://127.0.0.1:8080 \
+NODE_TLS_REJECT_UNAUTHORIZED=0 \
+claude
+```
+
+That's it — open `http://127.0.0.1:8081` to see every LLM request in real time.
+
 ## Prerequisites
 
 - Python >= 3.11
@@ -188,15 +223,6 @@ curl https://api.anthropic.com/v1/messages \
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
-
-### What Gets Captured
-
-| Provider | Hosts | Paths |
-|----------|-------|-------|
-| OpenAI | `api.openai.com` | `/v1/chat/completions`, `/v1/responses` |
-| Anthropic | `api.anthropic.com` | `/v1/messages` |
-
-All other HTTP traffic passes through the proxy transparently without being captured or stored.
 
 ## License
 
