@@ -70,6 +70,9 @@ async def _start(
     raw_capture_repo = RawCaptureRepository(engine)
     event_bus = EventBus()
 
+    # End any stale active sessions left over from a previous unclean shutdown
+    await session_repo.end_all_active()
+
     # Create session
     session = Session(
         name=session_name or f"Session {datetime.now().strftime('%Y-%m-%d %H:%M')}",

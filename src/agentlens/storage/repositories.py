@@ -161,6 +161,16 @@ class SessionRepository:
             await conn.execute(delete(llm_requests_table).where(llm_requests_table.c.session_id == session_id))
             await conn.execute(delete(sessions_table).where(sessions_table.c.id == session_id))
 
+    async def end_all_active(self) -> None:
+        """Set ``ended_at`` on every session that is still active (``ended_at IS NULL``)."""
+        t = sessions_table
+        async with self.engine.begin() as conn:
+            await conn.execute(
+                update(t)
+                .where(t.c.ended_at.is_(None))
+                .values(ended_at=_dt_to_str(datetime.utcnow()))
+            )
+
     async def increment_stats(
         self,
         session_id: str,
