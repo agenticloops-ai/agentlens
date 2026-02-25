@@ -268,7 +268,9 @@ class GeminiPlugin(ProviderPlugin):
         else:
             response_body = raw.response_body if isinstance(raw.response_body, dict) else {}
             # Cloud Code wraps the Gemini response under a "response" key.
-            response_body = response_body.get("response", response_body) if "response" in response_body else response_body
+            response_body = (
+                response_body.get("response", response_body) if "response" in response_body else response_body
+            )
             candidates = response_body.get("candidates", [])
             if candidates:
                 candidate = candidates[0]
