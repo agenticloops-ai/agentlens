@@ -334,7 +334,7 @@ class RequestRepository:
         model: str | None = None,
         has_tools: bool | None = None,
         offset: int = 0,
-        limit: int = 50,
+        limit: int | None = None,
     ) -> list[LLMRequest]:
         t = llm_requests_table
         stmt = select(t).where(t.c.session_id == session_id)
@@ -348,7 +348,9 @@ class RequestRepository:
         elif has_tools is False:
             stmt = stmt.where(t.c.tools == "[]")
 
-        stmt = stmt.order_by(t.c.timestamp.asc()).offset(offset).limit(limit)
+        stmt = stmt.order_by(t.c.timestamp.asc()).offset(offset)
+        if limit is not None:
+            stmt = stmt.limit(limit)
 
         async with self.engine.connect() as conn:
             rows = (await conn.execute(stmt)).fetchall()

@@ -80,7 +80,7 @@ async def list_requests(
     model: str | None = Query(default=None),
     has_tools: bool | None = Query(default=None),
     offset: int = Query(default=0, ge=0),
-    limit: int = Query(default=50, ge=1, le=500),
+    limit: int | None = Query(default=None, ge=1, le=5000),
     request_repo: RequestRepository = Depends(get_request_repo),
 ) -> list[dict[str, Any]]:
     """List requests for a session with optional filters, returning summaries."""

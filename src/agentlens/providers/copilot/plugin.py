@@ -27,6 +27,10 @@ class GithubCopilotPlugin(OpenAIPlugin):
     """Plugin for GitHub Copilot using the Responses API (/responses)."""
 
     @property
+    def priority(self) -> int:
+        return 10
+
+    @property
     def meta(self) -> ProviderMeta:
         return _COPILOT_META
 
@@ -43,7 +47,15 @@ class GithubCopilotPlugin(OpenAIPlugin):
 
 
 class GithubCopilotCompletionsPlugin(OpenAICompletionsPlugin):
-    """Plugin for GitHub Copilot using the Chat Completions API (/v1/chat/completions)."""
+    """Plugin for GitHub Copilot using the Chat Completions API.
+
+    Copilot routes requests to both ``/v1/chat/completions`` and
+    ``/chat/completions`` (used for Gemini models among others).
+    """
+
+    @property
+    def priority(self) -> int:
+        return 10
 
     @property
     def meta(self) -> ProviderMeta:
@@ -51,18 +63,26 @@ class GithubCopilotCompletionsPlugin(OpenAICompletionsPlugin):
 
     @property
     def endpoints(self) -> list[EndpointPattern]:
-        return [EndpointPattern(host, "/v1/chat/completions") for host in COPILOT_HOSTS]
+        eps = []
+        for host in COPILOT_HOSTS:
+            eps.append(EndpointPattern(host, "/v1/chat/completions"))
+            eps.append(EndpointPattern(host, "/chat/completions"))
+        return eps
 
     @property
     def path_only_patterns(self) -> list[str]:
         return []
 
     def can_parse(self, raw: RawCapture) -> bool:
-        return _is_copilot_url(raw.request_url, "/v1/chat/completions")
+        return _is_copilot_url(raw.request_url, "/chat/completions")
 
 
 class GithubCopilotAnthropicPlugin(AnthropicPlugin):
     """Plugin for GitHub Copilot using the Anthropic Messages API (/v1/messages)."""
+
+    @property
+    def priority(self) -> int:
+        return 10
 
     @property
     def meta(self) -> ProviderMeta:
@@ -82,6 +102,10 @@ class GithubCopilotAnthropicPlugin(AnthropicPlugin):
 
 class GithubCopilotGeminiPlugin(GeminiPlugin):
     """Plugin for GitHub Copilot using the Gemini API (:generateContent / :streamGenerateContent)."""
+
+    @property
+    def priority(self) -> int:
+        return 10
 
     @property
     def meta(self) -> ProviderMeta:

@@ -44,6 +44,11 @@ class ProviderPlugin(ABC):
         ...
 
     @property
+    def priority(self) -> int:
+        """Higher priority plugins are checked first in get_plugin / detect_provider."""
+        return 0
+
+    @property
     def path_only_patterns(self) -> list[str]:
         """Path-only patterns for self-hosted/proxy scenarios (no host check)."""
         return [ep.path for ep in self.endpoints]

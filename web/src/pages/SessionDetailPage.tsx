@@ -1,6 +1,6 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useSession, useSessionRequests } from "../api/hooks";
+import { useSession, useSessionRequests, useRenameSession } from "../api/hooks";
 import { RequestTimeline } from "../components/request/RequestTimeline";
 import { TokenUsageChart } from "../components/stats/TokenUsageChart";
 import { LatencyChart } from "../components/stats/LatencyChart";
@@ -52,34 +52,26 @@ export function SessionDetailPage() {
   const { data: requests, isLoading: requestsLoading } = useSessionRequests(
     sessionId ?? "",
   );
+  const renameSession = useRenameSession();
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingName) nameInputRef.current?.select();
+  }, [editingName]);
+
+  const commitRename = () => {
+    const trimmed = nameDraft.trim();
+    if (trimmed && trimmed !== session?.name && sessionId) {
+      renameSession.mutate({ id: sessionId, name: trimmed });
+    }
+    setEditingName(false);
+  };
 
   const safeRequests = requests ?? [];
 
-  // -------------------------------------------------------------------------
-  // All hooks MUST be above any early returns (Rules of Hooks)
-  // -------------------------------------------------------------------------
-  const timelineRef = useRef<HTMLDivElement>(null);
-  const userScrolledUp = useRef(false);
-  const prevRequestCount = useRef(safeRequests.length);
-
   const getProvider = useProviderMeta();
-
-  const handleTimelineScroll = useCallback(() => {
-    const el = timelineRef.current;
-    if (!el) return;
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-    userScrolledUp.current = !atBottom;
-  }, []);
-
-  useEffect(() => {
-    if (safeRequests.length > prevRequestCount.current && !userScrolledUp.current) {
-      const el = timelineRef.current;
-      if (el) {
-        el.scrollTop = el.scrollHeight;
-      }
-    }
-    prevRequestCount.current = safeRequests.length;
-  }, [safeRequests.length]);
 
   // -------------------------------------------------------------------------
   // Early returns (after all hooks)
@@ -109,17 +101,34 @@ export function SessionDetailPage() {
     <div className="flex flex-col lg:flex-row gap-4 h-full">
       {/* Left panel: Request timeline */}
       <div className="flex-1 min-w-0 flex flex-col">
-        <div
-          ref={timelineRef}
-          onScroll={handleTimelineScroll}
-          className="flex-1 bg-gray-800/40 border border-gray-700 rounded-lg overflow-y-auto flex flex-col"
-        >
+        <div className="flex-1 bg-gray-800/40 border border-gray-700 rounded-lg flex flex-col min-h-0">
           {/* Session header (inside the timeline card so tops align) */}
           <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-700">
             <div className="min-w-0">
-              <h1 className="text-base font-bold text-gray-100 truncate">
-                {session.name || "Unnamed Session"}
-              </h1>
+              {editingName ? (
+                <input
+                  ref={nameInputRef}
+                  value={nameDraft}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  onBlur={commitRename}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitRename();
+                    if (e.key === "Escape") setEditingName(false);
+                  }}
+                  className="text-base font-bold bg-gray-700 text-gray-100 px-1.5 py-0.5 rounded border border-gray-600 outline-none focus:border-blue-500 w-full max-w-xs"
+                />
+              ) : (
+                <h1
+                  className="text-base font-bold text-gray-100 truncate cursor-pointer hover:text-blue-400 transition-colors"
+                  onClick={() => {
+                    setNameDraft(session.name || "");
+                    setEditingName(true);
+                  }}
+                  title="Click to rename"
+                >
+                  {session.name || "Unnamed Session"}
+                </h1>
+              )}
               <div className="flex items-center gap-3 text-xs text-gray-500">
                 {isActive && (
                   <span className="flex items-center gap-1.5 text-green-400">

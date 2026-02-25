@@ -31,3 +31,8 @@ def get_raw_capture_repo(request: Request) -> RawCaptureRepository:
 def get_event_bus(request: Request) -> EventBus:
     """FastAPI dependency -- return the ``EventBus`` from app state."""
     return request.app.state.event_bus
+
+
+def get_addon(request: Request):
+    """FastAPI dependency -- return the ``AgentLensAddon`` from app state."""
+    return request.app.state.addon

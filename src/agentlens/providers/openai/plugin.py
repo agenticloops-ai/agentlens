@@ -164,7 +164,9 @@ def _convert_tools(raw_tools: list[dict[str, Any]]) -> list[ToolDefinition]:
     tools: list[ToolDefinition] = []
     for tool in raw_tools:
         tool_type = tool.get("type", "")
-        if tool_type == "function":
+        # Accept explicit "function" type, or any tool with a "name" field
+        # (Responses API may omit "type" for function tools).
+        if tool_type == "function" or (tool.get("name") and tool_type in ("", "function")):
             name = tool.get("name", "")
             is_mcp = name.startswith("mcp__")
             mcp_server = name.split("__")[1] if is_mcp and len(name.split("__")) >= 3 else None

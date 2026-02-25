@@ -44,6 +44,26 @@ export function useRawCapture(id: string) {
   });
 }
 
+export function useCreateSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (name?: string) => api.sessions.createNew(name),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
+  });
+}
+
+export function useRenameSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      api.sessions.rename(id, name),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: ["sessions"] });
+      qc.invalidateQueries({ queryKey: ["sessions", id] });
+    },
+  });
+}
+
 export function useDeleteSession() {
   const qc = useQueryClient();
   return useMutation({

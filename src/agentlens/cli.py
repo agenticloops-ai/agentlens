@@ -97,6 +97,7 @@ async def _start(
     web_app.state.request_repo = request_repo
     web_app.state.raw_capture_repo = raw_capture_repo
     web_app.state.event_bus = event_bus
+    web_app.state.addon = addon
 
     # Print startup banner
     _print_banner(host, proxy_port, web_port, session)

@@ -48,7 +48,7 @@ class PluginRegistry:
     """
 
     def __init__(self, plugins: list[ProviderPlugin]) -> None:
-        self._plugins = plugins
+        self._plugins = sorted(plugins, key=lambda p: p.priority, reverse=True)
 
     # -- Parser dispatch (replaces ParserRegistry) --
 
@@ -96,7 +96,7 @@ class PluginRegistry:
         # Check host + path combinations from all plugins
         for plugin in self._plugins:
             for ep in plugin.endpoints:
-                if ep.host in host and clean == ep.path:
+                if ep.host in host and (clean == ep.path or clean.endswith(ep.path)):
                     return plugin.meta.name
 
         # Fallback: path-only matching (self-hosted proxies / gateway rewrites)

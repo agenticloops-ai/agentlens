@@ -1,5 +1,6 @@
+import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
-import { useSessions, useDeleteSession, useDeleteAllSessions } from "../../api/hooks";
+import { useSessions, useDeleteSession, useDeleteAllSessions, useCreateSession, useRenameSession } from "../../api/hooks";
 import type { SessionSummary } from "../../types";
 
 /** Ensure an ISO timestamp is treated as UTC (server stores naive UTC without Z). */
@@ -21,10 +22,30 @@ function timeAgo(iso: string): string {
 function SessionItem({
   session,
   onDelete,
+  onRename,
 }: {
   session: SessionSummary;
   onDelete: (id: string) => void;
+  onRename: (id: string, name: string) => void;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(session.name);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.select();
+  }, [editing]);
+
+  const commit = () => {
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== session.name) {
+      onRename(session.id, trimmed);
+    } else {
+      setDraft(session.name);
+    }
+    setEditing(false);
+  };
+
   return (
     <NavLink
       to={`/session/${session.id}`}
@@ -38,7 +59,34 @@ function SessionItem({
       }
     >
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium truncate">{session.name}</div>
+        {editing ? (
+          <input
+            ref={inputRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commit();
+              if (e.key === "Escape") {
+                setDraft(session.name);
+                setEditing(false);
+              }
+            }}
+            onClick={(e) => e.preventDefault()}
+            className="w-full text-sm font-medium bg-gray-700 text-gray-100 px-1.5 py-0.5 rounded border border-gray-600 outline-none focus:border-blue-500"
+          />
+        ) : (
+          <div
+            className="text-sm font-medium truncate"
+            onDoubleClick={(e) => {
+              e.preventDefault();
+              setDraft(session.name);
+              setEditing(true);
+            }}
+          >
+            {session.name}
+          </div>
+        )}
         <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
           <span>{session.request_count} requests</span>
           <span>{timeAgo(session.started_at)}</span>
@@ -65,6 +113,8 @@ export function Sidebar() {
   const { data: sessions, isLoading } = useSessions();
   const deleteSession = useDeleteSession();
   const deleteAll = useDeleteAllSessions();
+  const createSession = useCreateSession();
+  const renameSession = useRenameSession();
   const navigate = useNavigate();
   const { sessionId } = useParams<{ sessionId?: string }>();
 
@@ -82,6 +132,16 @@ export function Sidebar() {
     deleteAll.mutate(undefined, {
       onSuccess: () => navigate("/"),
     });
+  };
+
+  const handleNewSession = () => {
+    createSession.mutate(undefined, {
+      onSuccess: (data) => navigate(`/session/${data.id}`),
+    });
+  };
+
+  const handleRename = (id: string, name: string) => {
+    renameSession.mutate({ id, name });
   };
 
   return (
@@ -102,9 +162,21 @@ export function Sidebar() {
       {/* Session list */}
       <div className="flex-1 overflow-y-auto py-2">
         <div className="flex items-center justify-between px-4 py-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-            Sessions
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+              Sessions
+            </span>
+            <button
+              onClick={handleNewSession}
+              disabled={createSession.isPending}
+              className="flex items-center justify-center h-4.5 w-4.5 rounded bg-gray-700 text-gray-400 hover:bg-blue-600 hover:text-white transition-colors disabled:opacity-50"
+              title="New session"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
           {sessions && sessions.length > 0 && (
             <button
               onClick={handleClearAll}
@@ -127,7 +199,7 @@ export function Sidebar() {
         )}
 
         {sessions?.map((s) => (
-          <SessionItem key={s.id} session={s} onDelete={handleDelete} />
+          <SessionItem key={s.id} session={s} onDelete={handleDelete} onRename={handleRename} />
         ))}
       </div>
     </aside>

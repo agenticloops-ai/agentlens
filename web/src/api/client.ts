@@ -50,6 +50,16 @@ export const api = {
   sessions: {
     list: () => fetchJSON<SessionSummary[]>("/sessions"),
     get: (id: string) => fetchJSON<SessionDetail>(`/sessions/${id}`),
+    createNew: (name?: string) =>
+      fetchJSON<SessionDetail>("/sessions/new", {
+        method: "POST",
+        body: name ? JSON.stringify({ name }) : undefined,
+      }),
+    rename: (id: string, name: string) =>
+      fetchJSON<SessionDetail>(`/sessions/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name }),
+      }),
     delete: (id: string) =>
       fetch(`${BASE_URL}/sessions/${id}`, { method: "DELETE" }),
     deleteAll: () =>
