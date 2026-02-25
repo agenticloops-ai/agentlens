@@ -1,0 +1,65 @@
+{
+  "request_url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse",
+  "request_headers": {
+    "x-goog-api-key": "AIzaSy_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "content-type": "application/json",
+    "user-agent": "genai-js/1.0.0"
+  },
+  "request_body": {
+    "systemInstruction": {
+      "parts": [
+        {
+          "text": "You are a helpful assistant."
+        }
+      ]
+    },
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Explain Rust's ownership model in one paragraph."
+          }
+        ]
+      }
+    ],
+    "generationConfig": {
+      "maxOutputTokens": 512
+    }
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "text/event-stream"
+  },
+  "response_body": "",
+  "is_streaming": true,
+  "sse_events": [
+    {
+      "data": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"Rust's\"}],\"role\":\"model\"}}],\"modelVersion\":\"gemini-2.5-flash-preview-05-20\"}"
+    },
+    {
+      "data": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\" ownership model is a compile-time\"}],\"role\":\"model\"}}]}"
+    },
+    {
+      "data": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\" memory management system where each value\"}],\"role\":\"model\"}}]}"
+    },
+    {
+      "data": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\" has exactly one owner at a time,\"}],\"role\":\"model\"}}]}"
+    },
+    {
+      "data": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\" ownership can be transferred (moved)\"}],\"role\":\"model\"}}]}"
+    },
+    {
+      "data": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\" or temporarily lent (borrowed),\"}],\"role\":\"model\"}}]}"
+    },
+    {
+      "data": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\" and when the owner goes out of scope\"}],\"role\":\"model\"}}]}"
+    },
+    {
+      "data": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\" the value is automatically dropped,\"}],\"role\":\"model\"}}]}"
+    },
+    {
+      "data": "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\" eliminating memory leaks without a garbage collector.\"}],\"role\":\"model\"},\"finishReason\":\"STOP\"}],\"usageMetadata\":{\"promptTokenCount\":28,\"candidatesTokenCount\":75,\"totalTokenCount\":103}}"
+    }
+  ]
+}

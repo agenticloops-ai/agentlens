@@ -1,0 +1,58 @@
+{
+  "request_url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+  "request_headers": {
+    "x-goog-api-key": "AIzaSy_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "content-type": "application/json",
+    "user-agent": "genai-js/1.0.0"
+  },
+  "request_body": {
+    "systemInstruction": {
+      "parts": [
+        {
+          "text": "You are a helpful coding assistant. Provide clear, concise answers."
+        }
+      ]
+    },
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What is a Python decorator and when should I use one?"
+          }
+        ]
+      }
+    ],
+    "generationConfig": {
+      "temperature": 0.7,
+      "maxOutputTokens": 1024,
+      "topP": 0.95
+    }
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "application/json; charset=UTF-8"
+  },
+  "response_body": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "A **decorator** in Python is a function that takes another function as input and extends its behavior without modifying it directly. Decorators use the `@decorator_name` syntax placed above a function definition.\n\n## Basic Example\n\n```python\ndef log_calls(func):\n    def wrapper(*args, **kwargs):\n        print(f\"Calling {func.__name__}\")\n        result = func(*args, **kwargs)\n        print(f\"{func.__name__} returned {result}\")\n        return result\n    return wrapper\n\n@log_calls\ndef add(a, b):\n    return a + b\n\nadd(2, 3)  # prints: Calling add / add returned 5\n```\n\n## When to Use Decorators\n\n1. **Logging and monitoring** — track function calls and performance\n2. **Authentication/authorization** — check permissions before execution\n3. **Caching/memoization** — store results of expensive computations\n4. **Input validation** — validate arguments before the function runs\n5. **Retry logic** — automatically retry on transient failures"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "avgLogprobs": -0.15
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 42,
+      "candidatesTokenCount": 210,
+      "totalTokenCount": 252
+    },
+    "modelVersion": "gemini-2.5-flash-preview-05-20"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "request_url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+  "request_headers": {
+    "x-goog-api-key": "AIzaSy_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "content-type": "application/json",
+    "user-agent": "genai-js/1.0.0"
+  },
+  "request_body": {
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What's the weather in San Francisco?"
+          }
+        ]
+      }
+    ],
+    "tools": [
+      {
+        "functionDeclarations": [
+          {
+            "name": "get_weather",
+            "description": "Get the current weather for a given location.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "location": {
+                  "type": "string",
+                  "description": "The city name, e.g. 'San Francisco, CA'"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": ["celsius", "fahrenheit"],
+                  "description": "Temperature unit"
+                }
+              },
+              "required": ["location"]
+            }
+          },
+          {
+            "name": "get_forecast",
+            "description": "Get the weather forecast for the next N days.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "location": {
+                  "type": "string",
+                  "description": "The city name"
+                },
+                "days": {
+                  "type": "integer",
+                  "description": "Number of days to forecast"
+                }
+              },
+              "required": ["location"]
+            }
+          }
+        ]
+      }
+    ],
+    "toolConfig": {
+      "functionCallingConfig": {
+        "mode": "AUTO"
+      }
+    },
+    "generationConfig": {
+      "temperature": 0.5
+    }
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "application/json; charset=UTF-8"
+  },
+  "response_body": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I'll check the current weather in San Francisco for you."
+            },
+            {
+              "functionCall": {
+                "name": "get_weather",
+                "args": {
+                  "location": "San Francisco, CA",
+                  "unit": "fahrenheit"
+                }
+              }
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "avgLogprobs": -0.08
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 98,
+      "candidatesTokenCount": 45,
+      "totalTokenCount": 143
+    },
+    "modelVersion": "gemini-2.5-flash-preview-05-20"
+  }
+}

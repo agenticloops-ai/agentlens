@@ -1,0 +1,69 @@
+{
+  "request_url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+  "request_headers": {
+    "x-goog-api-key": "AIzaSy_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "content-type": "application/json",
+    "user-agent": "genai-js/1.0.0"
+  },
+  "request_body": {
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "text": "How many r's are in the word \"strawberry\"?"
+          }
+        ]
+      }
+    ],
+    "generationConfig": {
+      "temperature": 1.0,
+      "maxOutputTokens": 8192,
+      "thinkingConfig": {
+        "thinkingBudget": 4096
+      }
+    }
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "application/json; charset=UTF-8"
+  },
+  "response_body": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "The user is asking me to count the number of r's in \"strawberry\". Let me spell it out: s-t-r-a-w-b-e-r-r-y. I see r at position 3, 8, and 9. That's 3 r's.",
+              "thought": true
+            },
+            {
+              "text": "There are **3** r's in the word \"strawberry\".\n\nBreaking it down: **s-t-r-a-w-b-e-r-r-y**\n\n1. Position 3: **r**\n2. Position 8: **r**\n3. Position 9: **r**"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "avgLogprobs": -0.12
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 142,
+      "totalTokenCount": 160,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 142
+        }
+      ]
+    },
+    "modelVersion": "gemini-2.5-flash-preview-05-20"
+  }
+}

@@ -6,6 +6,7 @@ from agentlens.models import RawCapture
 
 from .._base import EndpointPattern, ProviderMeta
 from ..anthropic.plugin import AnthropicPlugin
+from ..gemini.plugin import GeminiPlugin
 from ..openai.completions import OpenAICompletionsPlugin
 from ..openai.plugin import OpenAIPlugin
 
@@ -77,3 +78,29 @@ class GithubCopilotAnthropicPlugin(AnthropicPlugin):
 
     def can_parse(self, raw: RawCapture) -> bool:
         return _is_copilot_url(raw.request_url, "/v1/messages")
+
+
+class GithubCopilotGeminiPlugin(GeminiPlugin):
+    """Plugin for GitHub Copilot using the Gemini API (:generateContent / :streamGenerateContent)."""
+
+    @property
+    def meta(self) -> ProviderMeta:
+        return _COPILOT_META
+
+    @property
+    def endpoints(self) -> list[EndpointPattern]:
+        eps = []
+        for host in COPILOT_HOSTS:
+            eps.append(EndpointPattern(host, ":generateContent"))
+            eps.append(EndpointPattern(host, ":streamGenerateContent"))
+        return eps
+
+    @property
+    def path_only_patterns(self) -> list[str]:
+        return []
+
+    def can_parse(self, raw: RawCapture) -> bool:
+        url = raw.request_url
+        return any(host in url for host in COPILOT_HOSTS) and (
+            ":generateContent" in url or ":streamGenerateContent" in url
+        )

@@ -1,7 +1,9 @@
 """mitmproxy addon for intercepting and profiling LLM API traffic."""
 
+import gzip
 import json
 import time
+import zlib
 import asyncio
 from mitmproxy import http
 
@@ -39,6 +41,17 @@ class AgentLensAddon:
 
         if not self.registry.is_llm_request(host, path, headers):
             return  # Skip non-LLM traffic
+
+        # Force JSON responses for Cloud Code API (defaults to protobuf).
+        if "cloudcode-pa.googleapis.com" in host:
+            if "alt=" not in flow.request.path:
+                separator = "&" if "?" in flow.request.path else "?"
+                flow.request.path += f"{separator}alt=json"
+            flow.request.headers["accept"] = "application/json"
+
+        # Tell the upstream server not to compress — the stream callback
+        # captures raw wire bytes so we'd get gzip/br data instead of text.
+        flow.request.headers["accept-encoding"] = "identity"
 
         # Mark this flow for capture
         flow.metadata["capture"] = True
@@ -111,7 +124,13 @@ class AgentLensAddon:
         # empty when we use a streaming callback (which we always do for
         # captured flows now).
         buf = self._stream_buffers.pop(flow.id, [])
-        response_text = b"".join(buf).decode("utf-8", errors="replace")
+        raw_bytes = b"".join(buf)
+
+        # Decompress if the server sent compressed data despite our
+        # accept-encoding: identity header.
+        raw_bytes = self._decompress(raw_bytes, flow.response.headers.get("content-encoding", ""))
+
+        response_text = raw_bytes.decode("utf-8", errors="replace")
 
         # Detect SSE from the actual content when the header/body hints
         # missed it (e.g. Codex via chatgpt.com sends SSE without
@@ -201,6 +220,25 @@ class AgentLensAddon:
         self._request_times.pop(flow.id, None)
         self._ttft_times.pop(flow.id, None)
         self._stream_buffers.pop(flow.id, None)
+
+    @staticmethod
+    def _decompress(data: bytes, content_encoding: str) -> bytes:
+        """Decompress response bytes based on Content-Encoding header."""
+        encoding = content_encoding.strip().lower()
+        if not encoding or encoding == "identity":
+            return data
+        try:
+            if encoding == "gzip":
+                return gzip.decompress(data)
+            if encoding == "deflate":
+                return zlib.decompress(data)
+            if encoding == "br":
+                import brotli
+
+                return brotli.decompress(data)
+        except Exception:
+            pass
+        return data
 
     @staticmethod
     def _looks_like_sse(text: str) -> bool:

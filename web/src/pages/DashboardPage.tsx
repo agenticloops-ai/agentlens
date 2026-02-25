@@ -6,8 +6,6 @@ export function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-100 mb-6">Dashboard</h1>
-
       {/* Loading state */}
       {isLoading && (
         <div className="flex items-center gap-3 py-16 justify-center">

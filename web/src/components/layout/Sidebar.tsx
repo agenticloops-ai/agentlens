@@ -89,7 +89,7 @@ export function Sidebar() {
       {/* Logo / Title */}
       <NavLink
         to="/"
-        className="flex items-center gap-2 px-5 py-5 border-b border-gray-700"
+        className="h-12 shrink-0 flex items-center gap-2 px-5 border-b border-gray-700"
       >
         <div className="h-7 w-7 rounded-md bg-blue-500 flex items-center justify-center text-xs font-bold text-white">
           AL
