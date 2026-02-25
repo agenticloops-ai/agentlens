@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm view zustand versions --json)",
+      "Bash(npm install --package-lock-only)",
+      "Bash(npm install)",
+      "Bash(npm ci)"
+    ]
+  }
+}

@@ -37,7 +37,6 @@ export const useLiveStore = create<LiveState>((set) => {
     if (intentionalClose) return;
     reconnectTimer = setTimeout(() => {
       reconnectTimer = null;
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       connectWs();
     }, reconnectDelay);
     reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY);
