@@ -161,6 +161,19 @@ class SessionRepository:
             await conn.execute(delete(llm_requests_table).where(llm_requests_table.c.session_id == session_id))
             await conn.execute(delete(sessions_table).where(sessions_table.c.id == session_id))
 
+    async def get_by_name(self, name: str) -> Session | None:
+        """Return the most recent session with the given name, or ``None``."""
+        t = sessions_table
+        async with self.engine.connect() as conn:
+            row = (
+                await conn.execute(
+                    select(t).where(t.c.name == name).order_by(t.c.started_at.desc()).limit(1)
+                )
+            ).first()
+        if row is None:
+            return None
+        return self._row_to_model(row)
+
     async def end_all_active(self) -> None:
         """Set ``ended_at`` on every session that is still active (``ended_at IS NULL``)."""
         t = sessions_table

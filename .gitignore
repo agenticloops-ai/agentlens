@@ -1,17 +1,29 @@
+# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
+*.egg
+.eggs/
 dist/
 build/
-.eggs/
-*.egg
+
+# Virtual environments
 .venv/
 venv/
+
+# Node / Frontend
 node_modules/
 web/dist/
+src/agentlens/static
+
+# Database
 *.db
 *.sqlite
-src/agentlens/static
+
+# Tool caches
 .ruff_cache/
 .pytest_cache/
 .mypy_cache/
+
+# Project
+results/

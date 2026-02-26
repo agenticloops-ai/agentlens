@@ -84,6 +84,30 @@ Options:
   --open/--no-open     Open web UI in browser            [default: --open]
 ```
 
+### Headless capture with export
+
+Use `wait` to start the proxy, run your agent externally, then export results on Ctrl+C:
+
+```bash
+# Terminal 1 — start proxy and wait
+agentlens wait --output results/claude-codegen
+
+# Terminal 2 — run your agent with proxy env vars
+HTTP_PROXY=http://127.0.0.1:8080 \
+HTTPS_PROXY=http://127.0.0.1:8080 \
+NODE_EXTRA_CA_CERTS=~/.mitmproxy/mitmproxy-ca-cert.pem \
+claude -p "refactor the auth module"
+
+# Press Ctrl+C in Terminal 1 when done — results are exported to:
+#   results/claude-codegen/2026-02-25T14-30-00/
+```
+
+You can also export a previous session from the database:
+
+```bash
+agentlens export "Session 2026-02-25 14:30" --output exports/
+```
+
 ## Certificate Setup
 
 On first run, mitmproxy generates a CA certificate at `~/.mitmproxy/`. You need to either trust this certificate or disable SSL verification for your agent to work through the proxy.
