@@ -4,7 +4,11 @@
       "Bash(npm view zustand versions --json)",
       "Bash(npm install --package-lock-only)",
       "Bash(npm install)",
-      "Bash(npm ci)"
+      "Bash(npm ci)",
+      "Bash(du -h /Users/alx/Development/agenticloops-ai/agentlens/samples/*/*/*)",
+      "Bash(find /Users/alx/Development/agenticloops-ai/agentlens/samples/ -type f -name \"*.json\" -exec ls -lh {} ;)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3:*)"
     ]
   }
 }

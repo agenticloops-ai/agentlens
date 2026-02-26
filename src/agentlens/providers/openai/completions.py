@@ -164,14 +164,20 @@ def _reassemble_streaming(sse_events: list[dict[str, Any]]) -> tuple[Message, St
     usage = TokenUsage()
 
     for event in sse_events:
-        data_str = event.get("data", "")
-        if data_str == "[DONE]":
+        data = event.get("data", "")
+
+        if isinstance(data, str):
+            if data == "[DONE]":
+                continue
+            try:
+                data = json.loads(data)
+            except (json.JSONDecodeError, TypeError):
+                continue
+
+        if not isinstance(data, dict):
             continue
 
-        try:
-            chunk = json.loads(data_str)
-        except (json.JSONDecodeError, TypeError):
-            continue
+        chunk = data
 
         # Extract usage from chunks that have it
         chunk_usage = chunk.get("usage")

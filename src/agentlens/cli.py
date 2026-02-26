@@ -260,17 +260,19 @@ def wait(
     fmt_list = [f.strip() for f in formats.split(",") if f.strip()]
     dest = Path(output) / timestamp
 
-    asyncio.run(_wait(
-        session_name=name,
-        output_dir=dest,
-        formats=fmt_list,
-        proxy_port=proxy_port,
-        web_port=web_port,
-        host=host,
-        db_path=db_path,
-        web=web,
-        open_browser=open_browser,
-    ))
+    asyncio.run(
+        _wait(
+            session_name=name,
+            output_dir=dest,
+            formats=fmt_list,
+            proxy_port=proxy_port,
+            web_port=web_port,
+            host=host,
+            db_path=db_path,
+            web=web,
+            open_browser=open_browser,
+        )
+    )
 
 
 async def _wait(

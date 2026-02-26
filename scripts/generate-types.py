@@ -128,9 +128,7 @@ def main() -> None:
         # Also dump individual schemas for reference / debugging
         for model in MODELS:
             individual = model.model_json_schema()
-            (tmp_dir / f"{model.__name__}.json").write_text(
-                json.dumps(individual, indent=2)
-            )
+            (tmp_dir / f"{model.__name__}.json").write_text(json.dumps(individual, indent=2))
 
         # 2. Convert the combined schema to TypeScript
         result = subprocess.run(

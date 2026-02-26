@@ -166,9 +166,7 @@ class SessionRepository:
         t = sessions_table
         async with self.engine.connect() as conn:
             row = (
-                await conn.execute(
-                    select(t).where(t.c.name == name).order_by(t.c.started_at.desc()).limit(1)
-                )
+                await conn.execute(select(t).where(t.c.name == name).order_by(t.c.started_at.desc()).limit(1))
             ).first()
         if row is None:
             return None
@@ -178,11 +176,7 @@ class SessionRepository:
         """Set ``ended_at`` on every session that is still active (``ended_at IS NULL``)."""
         t = sessions_table
         async with self.engine.begin() as conn:
-            await conn.execute(
-                update(t)
-                .where(t.c.ended_at.is_(None))
-                .values(ended_at=_dt_to_str(datetime.utcnow()))
-            )
+            await conn.execute(update(t).where(t.c.ended_at.is_(None)).values(ended_at=_dt_to_str(datetime.utcnow())))
 
     async def increment_stats(
         self,

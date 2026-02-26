@@ -100,7 +100,9 @@ def _render_messages(
         lines.append("")
         for block in msg.content:
             if block.type == ContentBlockType.TEXT:
+                lines.append("```")
                 lines.append(block.text)  # type: ignore[union-attr]
+                lines.append("```")
                 lines.append("")
             elif block.type == ContentBlockType.TOOL_USE:
                 lines.append(f"```tool_call: {block.tool_name}")  # type: ignore[union-attr]
@@ -163,7 +165,9 @@ def render_markdown(
         if sys_text:
             lines.append("### System Prompt")
             lines.append("")
+            lines.append("```")
             lines.append(sys_text)
+            lines.append("```")
             lines.append("")
 
         # Tool definitions
@@ -175,7 +179,9 @@ def render_markdown(
                 lines.append(f"#### `{tool.name}`{mcp_tag}")
                 lines.append("")
                 if tool.description:
+                    lines.append("```")
                     lines.append(tool.description)
+                    lines.append("```")
                     lines.append("")
                 if tool.input_schema:
                     props = tool.input_schema.get("properties", {})
