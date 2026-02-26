@@ -2,4 +2,4 @@
 
 from importlib.metadata import version
 
-__version__ = version("agentlens")
+__version__ = version("agentlens-proxy")
