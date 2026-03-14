@@ -11,8 +11,10 @@
 #   -o DIR              Output directory for exported files (default: results)
 #   -s NAME             Override auto-generated session name
 #   -l LABEL            Label for the capture session
-#   -T HOST             Transparent capture mode targeting HOST (requires sudo,
-#                       can be repeated for multiple targets)
+#   -T                  Enable transparent capture (requires sudo). Captures all
+#                       port 443 traffic unless narrowed with -t.
+#   -t HOST             Add a transparent capture target host (repeatable).
+#                       Implies -T.
 #   -S                  Enable macOS system proxy (captures GUI apps that ignore
 #                       HTTP_PROXY env vars)
 #   -E                  Inject Electron --proxy-server flag into the command
@@ -28,8 +30,11 @@
 #   # Electron app (e.g. Claude Desktop, Cursor)
 #   ./alens -E -- /Applications/Claude.app/Contents/MacOS/Claude
 #
-#   # Transparent capture (e.g. CoWork VM)
-#   ./alens -T api.anthropic.com -- open /Applications/CoWork.app
+#   # Discover what hosts an app talks to (captures all port 443)
+#   ./alens -T -- open /Applications/NewAgent.app
+#
+#   # Transparent capture with specific target (e.g. CoWork VM)
+#   ./alens -T -t api.anthropic.com -- open /Applications/CoWork.app
 #
 #   # Custom output dir and session name
 #   ./alens -o results/my-test -s my-test -- python my_agent.py
@@ -44,7 +49,8 @@ Options:
   -o DIR              Output directory for exported files (default: results)
   -s NAME             Override auto-generated session name
   -l LABEL            Label for the capture session
-  -T HOST             Transparent capture targeting HOST (requires sudo, repeatable)
+  -T                  Enable transparent capture (requires sudo)
+  -t HOST             Add transparent capture target host (repeatable, implies -T)
   -S                  Enable macOS system proxy
   -E                  Inject Electron --proxy-server flag
   -H HOST             Override proxy host (default: active interface IP)
@@ -98,8 +104,13 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         -T)
+            TRANSPARENT=true
+            shift
+            ;;
+        -t)
             require_arg "$1" "${2:-}"
             TRANSPARENT_TARGETS+=("$2")
+            TRANSPARENT=true
             shift 2
             ;;
         -S)
@@ -143,10 +154,7 @@ if ! [[ "$PROXY_PORT" =~ ^[0-9]+$ ]] || ((PROXY_PORT < 1 || PROXY_PORT > 65535))
     die "proxy port must be an integer between 1 and 65535"
 fi
 
-TRANSPARENT=false
-if [[ ${#TRANSPARENT_TARGETS[@]} -gt 0 ]]; then
-    TRANSPARENT=true
-fi
+TRANSPARENT="${TRANSPARENT:-false}"
 
 # ---------------------------------------------------------------------------
 # Helpers

@@ -19,7 +19,8 @@ Tmux launcher that starts AgentLens in one pane and your agent in another, with 
 | `-o DIR` | Output directory (default: `results`) |
 | `-s NAME` | Session name override |
 | `-l LABEL` | Label for the capture session |
-| `-T HOST` | Transparent capture targeting HOST (requires sudo, repeatable) |
+| `-T` | Enable transparent capture (requires sudo) |
+| `-t HOST` | Add transparent capture target host (repeatable, implies `-T`) |
 | `-S` | Enable macOS system proxy (for GUI apps that ignore env vars) |
 | `-E` | Inject `--proxy-server` flag for Electron apps |
 | `-H HOST` | Override proxy host (default: auto-detected IP) |
@@ -57,12 +58,24 @@ Tmux launcher that starts AgentLens in one pane and your agent in another, with 
 ./alens -E -- /Applications/Windsurf.app/Contents/MacOS/Electron
 ```
 
+### Discovering new agents
+
+When exploring a new agent and you don't know which hosts it talks to, use `-T` with no targets to capture all port 443 traffic:
+
+```bash
+# Step 1: Sniff all HTTPS traffic
+./alens -T -- open /Applications/NewAgent.app
+
+# Step 2: Once you know the host, narrow down
+./alens -T -t api.example.com -- open /Applications/NewAgent.app
+```
+
 ### CoWork VM (transparent capture)
 
 CoWork runs inside a VM and ignores proxy env vars. Use `-T` to intercept traffic at the network level via `pf` rules (will prompt for sudo):
 
 ```bash
-./alens -T api.anthropic.com -l cowork -- open /Applications/CoWork.app
+./alens -T -t api.anthropic.com -l cowork -- open /Applications/CoWork.app
 ```
 
 ### Multiple transparent targets
@@ -70,7 +83,7 @@ CoWork runs inside a VM and ignores proxy env vars. Use `-T` to intercept traffi
 Transparent mode requires sudo — you'll be prompted once at launch:
 
 ```bash
-./alens -T api.anthropic.com -T api.openai.com -- open /Applications/SomeApp.app
+./alens -T -t api.anthropic.com -t api.openai.com -- open /Applications/SomeApp.app
 ```
 
 ### OpenAI-based agents (Python)
@@ -124,6 +137,6 @@ HTTP_PROXY=http://capture-host:8080 HTTPS_PROXY=http://capture-host:8080 \
 
 **Explicit proxy mode** (default): Starts `agentlens wait` and launches your command with `HTTP_PROXY`/`HTTPS_PROXY` env vars pointing at the proxy. Works for any agent that respects proxy env vars.
 
-**Transparent mode** (`-T`): Starts `agentlens capture --mode transparent` which sets up macOS `pf` rules to intercept traffic at the network level. No proxy env vars needed — works for apps running in VMs or that otherwise ignore proxy settings. Requires `sudo`.
+**Transparent mode** (`-T`): Starts `agentlens capture --mode transparent` which sets up macOS `pf` rules to intercept traffic at the network level. No proxy env vars needed — works for apps running in VMs or that otherwise ignore proxy settings. Use `-t HOST` to filter to specific hosts, or omit to capture all port 443 traffic. Requires `sudo`.
 
 The web UI is available at `http://localhost:8081` while the session is running.
