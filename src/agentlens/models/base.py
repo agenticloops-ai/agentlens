@@ -98,6 +98,9 @@ class LLMRequest(BaseModel):
     id: str = Field(default_factory=_uuid)
     session_id: str = ""
     raw_capture_id: str = ""
+    capture_mode: str = "explicit_proxy"
+    capture_label: str | None = None
+    capture_metadata: dict[str, Any] = Field(default_factory=dict)
 
     # Timing
     timestamp: datetime = Field(default_factory=datetime.utcnow)

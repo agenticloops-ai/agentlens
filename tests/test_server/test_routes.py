@@ -110,6 +110,9 @@ def _make_llm_request(
     return LLMRequest(
         session_id=session_id,
         raw_capture_id=raw_capture_id,
+        capture_mode="transparent" if raw_capture_id else "explicit_proxy",
+        capture_label="cowork" if raw_capture_id else None,
+        capture_metadata={"transport": "pf_redirect"} if raw_capture_id else {},
         timestamp=timestamp or datetime(2025, 1, 15, 10, 0, 1),
         duration_ms=duration_ms,
         provider=provider,
@@ -140,6 +143,9 @@ def _make_raw_capture(session_id: str, capture_id: str | None = None) -> RawCapt
     capture = RawCapture(
         session_id=session_id,
         timestamp=datetime(2025, 1, 15, 10, 0, 0),
+        capture_mode="transparent",
+        capture_label="cowork",
+        capture_metadata={"transport": "pf_redirect", "partial_response": True},
         provider="anthropic",
         request_url="https://api.anthropic.com/v1/messages",
         request_method="POST",
@@ -321,6 +327,8 @@ class TestRequestRoutes:
         assert "duration_ms" in item
         assert "is_streaming" in item
         assert "status" in item
+        assert "capture_mode" in item
+        assert "capture_label" in item
         assert "stop_reason" in item
         assert "usage" in item
         assert "preview_text" in item
@@ -468,6 +476,8 @@ class TestRequestRoutes:
         assert data["session_id"] == session.id
         assert data["provider"] == "anthropic"
         assert data["model"] == "claude-3-opus"
+        assert data["capture_mode"] == "explicit_proxy"
+        assert data["capture_label"] is None
         assert data["is_streaming"] is True
         assert data["status"] == "success"
         assert data["stop_reason"] == "end_turn"
@@ -510,6 +520,9 @@ class TestRequestRoutes:
 
         assert data["id"] == capture.id
         assert data["session_id"] == session.id
+        assert data["capture_mode"] == "transparent"
+        assert data["capture_label"] == "cowork"
+        assert data["capture_metadata"]["partial_response"] is True
         assert data["provider"] == "anthropic"
         assert data["request_url"] == "https://api.anthropic.com/v1/messages"
         assert data["response_status"] == 200

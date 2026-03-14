@@ -47,6 +47,14 @@ class TestCanParse:
         )
         assert plugin.can_parse(raw) is True
 
+    def test_recognizes_ip_url_with_anthropic_host_header(self):
+        plugin = AnthropicPlugin()
+        raw = RawCapture(
+            request_url="https://160.79.104.10/v1/messages?beta=true",
+            request_headers={"host": "api.anthropic.com"},
+        )
+        assert plugin.can_parse(raw) is True
+
     def test_rejects_non_anthropic(self):
         plugin = AnthropicPlugin()
         raw = RawCapture(

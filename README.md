@@ -37,6 +37,12 @@ claude
 
 That's it — open `http://127.0.0.1:8081` to see every LLM request in real time.
 
+For workloads that do not honor `HTTP_PROXY` and need host-boundary interception, use transparent capture instead:
+
+```bash
+sudo agentlens capture --mode transparent --target-host api.anthropic.com --label cowork
+```
+
 ## Prerequisites
 
 - Python >= 3.11
@@ -62,6 +68,9 @@ make install
 ```bash
 # Start the proxy (port 8080) and web UI (port 8081)
 agentlens start
+
+# Start transparent capture for VM-like workloads (requires sudo on macOS)
+sudo agentlens capture --mode transparent --target-host api.anthropic.com --label cowork
 
 # Or equivalently
 uv run agentlens start
@@ -121,6 +130,38 @@ claude -p "refactor the auth module"
 
 # Press Ctrl+C in Terminal 1 when done — results are exported to:
 #   results/claude-codegen/2026-02-25T14-30-00/
+```
+
+#### `agentlens capture`
+
+Start a capture session using either explicit proxy mode or transparent interception.
+
+```
+agentlens capture [OPTIONS]
+
+Options:
+  --mode               TEXT  Capture mode: explicit_proxy or transparent
+                             [default: explicit_proxy]
+  --proxy-port         INT   Port for the capture listener        [default: 8080]
+  --web-port           INT   Port for the web UI                  [default: 8081]
+  --host               TEXT  Host to bind the web UI to           [default: 127.0.0.1]
+  --session-name       TEXT  Name for this profiling session      [default: auto-generated]
+  --db-path            TEXT  Path to SQLite database              [default: ~/.agentlens/data.db]
+  --open / --no-open         Open web UI in browser               [default: --open]
+  --target-host        TEXT  Transparent capture target host      [repeatable]
+  --target-ip          TEXT  Transparent capture target IP        [repeatable]
+  --label              TEXT  Optional label for this capture
+  --pf-user            TEXT  Redirect only this local user's traffic
+```
+
+Examples:
+
+```bash
+# Generic explicit proxy capture
+agentlens capture --mode explicit_proxy
+
+# Transparent capture for Cowork/Claude local-agent traffic on macOS
+sudo agentlens capture --mode transparent --target-host api.anthropic.com --label cowork
 ```
 
 #### `agentlens export`
@@ -200,6 +241,14 @@ export PYTHONHTTPSVERIFY=0
 ## Usage
 
 Start the profiler in one terminal, then launch your agent in another with proxy environment variables set. The profiler captures all LLM API traffic transparently — no code changes needed.
+
+For VM-like or GUI workloads that ignore proxy environment variables, use transparent capture mode on macOS. Transparent mode requires:
+
+- `sudo`
+- a trusted mitmproxy CA at `~/.mitmproxy/mitmproxy-ca-cert.pem`
+- one or more `--target-host` or `--target-ip` values so PF can scope the redirect
+
+AgentLens uses provider plugins to decide which intercepted requests are real LLM calls, so the transport remains generic while request classification stays provider-specific.
 
 ### Claude Code
 
@@ -324,51 +373,31 @@ tmux new-session -d -s agentlens \
 
 You can swap `claude -p "..."` for any command — `python my_agent.py`, `codex`, `node agent.js`, etc.
 
-### Reusable shell function
+### Wrapper script for awkward workloads
 
-Add this to your `.bashrc` / `.zshrc` for a one-liner:
+Use the checked-in wrapper instead of maintaining an ad hoc shell function:
 
 ```bash
-lens-run() {
-  local output="results" session_name=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -o) output="$2"; shift 2 ;;
-      -s) session_name="$2"; shift 2 ;;
-      --) shift; break ;;
-      *)  break ;;
-    esac
-  done
-  if [[ $# -eq 0 ]]; then
-    echo "Usage: lens-run [-o DIR] [-s NAME] -- COMMAND [ARGS...]" >&2
-    return 1
-  fi
-
-  local wait_cmd="agentlens wait --output ${output} --no-open"
-  [[ -n "$session_name" ]] && wait_cmd+=" --session-name ${session_name}"
-
-  local proxy="http://127.0.0.1:8080"
-  local ca="${HOME}/.mitmproxy/mitmproxy-ca-cert.pem"
-
-  tmux kill-session -t agentlens 2>/dev/null || true
-  tmux new-session -d -s agentlens "$wait_cmd"
-  tmux split-window -h -t agentlens \
-    "sleep 2 && \
-     HTTP_PROXY=${proxy} HTTPS_PROXY=${proxy} \
-     NODE_EXTRA_CA_CERTS=${ca} SSL_CERT_FILE=${ca} \
-     REQUESTS_CA_BUNDLE=${ca} CURL_CA_BUNDLE=${ca} \
-     $*; \
-     tmux send-keys -t agentlens:0.0 C-c"
-  tmux select-pane -t agentlens:0.1
-  tmux attach -t agentlens
-}
+./.tools/lens-run.sh -- claude -p "refactor the auth module"
 ```
 
-Then:
+For Cowork/Claude local-agent mode, use the built-in transparent-capture preset:
 
 ```bash
-lens-run -- claude -p "refactor the auth module"
-lens-run -o results/my-test -s my-test -- python my_agent.py
+./.tools/lens-run.sh --cowork -- /Applications/Claude.app/Contents/MacOS/Claude
+```
+
+This wrapper:
+
+- starts AgentLens in tmux
+- launches your workload in a second pane
+- uses explicit proxy mode for normal CLI/SDK agents
+- uses `agentlens capture --mode transparent` for `--cowork`
+
+You can still use it for ordinary commands:
+
+```bash
+./.tools/lens-run.sh -o results/my-test -s my-test -- python my_agent.py
 ```
 
 ## License

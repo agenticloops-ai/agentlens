@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from urllib.parse import urlparse
 
 from agentlens.models import (
     ImageContent,
@@ -304,12 +305,18 @@ class AnthropicPlugin(ProviderPlugin):
 
     def can_parse(self, raw: RawCapture) -> bool:
         """Return True if this capture is from the Anthropic API."""
-        if "api.anthropic.com" in raw.request_url:
+        parsed = urlparse(raw.request_url)
+        path = parsed.path
+        host = raw.request_headers.get("host", "") or (parsed.hostname or "")
+        host = host.lower()
+        if host.startswith("a-api.anthropic.com"):
+            return False
+        if "api.anthropic.com" in host and path == "/v1/messages":
             return True
 
         # Check for Anthropic API key header pattern
         api_key = raw.request_headers.get("x-api-key", "")
-        if api_key.startswith("sk-ant-"):
+        if api_key.startswith("sk-ant-") and path == "/v1/messages":
             return True
 
         return False
@@ -380,6 +387,9 @@ class AnthropicPlugin(ProviderPlugin):
         return LLMRequest(
             raw_capture_id=raw.id,
             session_id=raw.session_id,
+            capture_mode=raw.capture_mode,
+            capture_label=raw.capture_label,
+            capture_metadata=dict(raw.capture_metadata),
             timestamp=raw.timestamp,
             duration_ms=duration_ms,
             time_to_first_token_ms=ttft_ms,

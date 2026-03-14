@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { Message } from "../../types";
 import { MessageBubble } from "./MessageBubble";
 
@@ -10,11 +11,26 @@ export function ConversationThread({
   messages,
   responseMessages,
 }: ConversationThreadProps) {
+  const toolNamesByCallId = useMemo(() => {
+    const entries = [...messages, ...responseMessages].flatMap((message) =>
+      message.content.flatMap((block) =>
+        block.type === "tool_use" && block.tool_call_id
+          ? [[block.tool_call_id, block.tool_name] as const]
+          : [],
+      ),
+    );
+    return new Map(entries);
+  }, [messages, responseMessages]);
+
   return (
     <div className="space-y-3">
       {/* Input messages */}
       {messages.map((msg, idx) => (
-        <MessageBubble key={`input-${idx}`} message={msg} />
+        <MessageBubble
+          key={`input-${idx}`}
+          message={msg}
+          toolNamesByCallId={toolNamesByCallId}
+        />
       ))}
 
       {/* Visual separator between input and response */}
@@ -30,7 +46,11 @@ export function ConversationThread({
 
       {/* Response messages */}
       {responseMessages.map((msg, idx) => (
-        <MessageBubble key={`response-${idx}`} message={msg} />
+        <MessageBubble
+          key={`response-${idx}`}
+          message={msg}
+          toolNamesByCallId={toolNamesByCallId}
+        />
       ))}
     </div>
   );

@@ -13,6 +13,9 @@ class RawCapture(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     session_id: str = ""
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+    capture_mode: str = "explicit_proxy"
+    capture_label: str | None = None
+    capture_metadata: dict[str, Any] = Field(default_factory=dict)
 
     # Provider detection
     provider: str = "unknown"

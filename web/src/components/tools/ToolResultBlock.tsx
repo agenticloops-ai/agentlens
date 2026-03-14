@@ -4,6 +4,7 @@ import { JsonViewer } from "../common/JsonViewer";
 
 interface ToolResultBlockProps {
   content: string;
+  toolName?: string;
   toolCallId: string;
   isError: boolean;
 }
@@ -28,6 +29,7 @@ const COLLAPSE_THRESHOLD = 400;
 
 export function ToolResultBlock({
   content,
+  toolName,
   toolCallId,
   isError,
 }: ToolResultBlockProps) {
@@ -75,6 +77,11 @@ export function ToolResultBlock({
         >
           {isError ? "Error" : "Result"}
         </span>
+        {toolName && (
+          <span className="text-[11px] px-1.5 py-0.5 rounded bg-gray-700 text-gray-300">
+            {toolName}
+          </span>
+        )}
         <span className="text-[10px] text-gray-500 font-mono truncate">
           {toolCallId}
         </span>

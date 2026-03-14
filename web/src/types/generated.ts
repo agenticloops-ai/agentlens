@@ -109,6 +109,9 @@ export interface LLMRequest {
   id: string;
   session_id: string;
   raw_capture_id: string;
+  capture_mode: string;
+  capture_label: string | null;
+  capture_metadata: Record<string, unknown>;
 
   // Timing
   timestamp: string; // ISO-8601 datetime
@@ -181,6 +184,9 @@ export interface RawCapture {
   id: string;
   session_id: string;
   timestamp: string; // ISO-8601 datetime
+  capture_mode: string;
+  capture_label: string | null;
+  capture_metadata: Record<string, unknown>;
 
   // Provider detection
   provider: Provider;

@@ -7,6 +7,7 @@ import { Badge } from "../common/Badge";
 
 interface MessageBubbleProps {
   message: Message;
+  toolNamesByCallId?: Map<string, string>;
 }
 
 interface RoleStyle {
@@ -43,7 +44,7 @@ const roleConfig: Record<MessageRole, RoleStyle> = {
   },
 };
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, toolNamesByCallId }: MessageBubbleProps) {
   const config = roleConfig[message.role];
 
   return (
@@ -62,7 +63,11 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
         {/* Content blocks */}
         {message.content.map((block, idx) => (
-          <ContentBlockRenderer key={idx} block={block} />
+          <ContentBlockRenderer
+            key={idx}
+            block={block}
+            toolNamesByCallId={toolNamesByCallId}
+          />
         ))}
       </div>
     </div>
@@ -73,7 +78,13 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 // Content block dispatcher
 // ---------------------------------------------------------------------------
 
-function ContentBlockRenderer({ block }: { block: ContentBlock }) {
+function ContentBlockRenderer({
+  block,
+  toolNamesByCallId,
+}: {
+  block: ContentBlock;
+  toolNamesByCallId?: Map<string, string>;
+}) {
   switch (block.type) {
     case "text":
       return <TextRenderer text={block.text} />;
@@ -91,6 +102,7 @@ function ContentBlockRenderer({ block }: { block: ContentBlock }) {
       return (
         <ToolResultBlock
           content={block.content}
+          toolName={toolNamesByCallId?.get(block.tool_call_id)}
           toolCallId={block.tool_call_id}
           isError={block.is_error}
         />

@@ -44,6 +44,10 @@ function FeatureBadge({
   );
 }
 
+function captureModeLabel(mode: string): string {
+  return mode === "transparent" ? "Transparent" : "Explicit";
+}
+
 interface RequestSummaryRowProps {
   request: LLMRequestSummary;
   sessionId: string;
@@ -94,6 +98,10 @@ export function RequestSummaryRow({
 
       {/* Model badge */}
       <ModelBadge color={providerColor} model={request.model} />
+
+      <span className="text-[10px] uppercase tracking-wider text-gray-500 w-16 shrink-0">
+        {request.capture_label ?? captureModeLabel(request.capture_mode)}
+      </span>
 
       {/* Duration bar */}
       <div className="w-24 shrink-0">

@@ -33,6 +33,10 @@ function formatCost(cost: number | null): string {
   return `$${cost.toFixed(2)}`;
 }
 
+function captureModeLabel(mode: string): string {
+  return mode === "transparent" ? "Transparent" : "Explicit Proxy";
+}
+
 const stopReasonVariant: Record<
   string,
   "default" | "green" | "orange" | "blue" | "red"
@@ -63,6 +67,16 @@ export function RequestDetail({ request }: RequestDetailProps) {
       <span className="text-sm font-medium text-gray-200">
         {request.model}
       </span>
+
+      <Badge variant={request.capture_mode === "transparent" ? "blue" : "default"} size="sm">
+        {request.capture_label ?? captureModeLabel(request.capture_mode)}
+      </Badge>
+
+      {request.capture_metadata.partial_response === true && (
+        <Badge variant="orange" size="sm">
+          Partial Response
+        </Badge>
+      )}
 
       {/* Separator */}
       <span className="text-gray-700">|</span>

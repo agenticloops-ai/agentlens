@@ -1,12 +1,17 @@
 """mitmproxy addon for intercepting and profiling LLM API traffic."""
 
+from __future__ import annotations
+
+import asyncio
 import gzip
 import json
 import time
 import zlib
-import asyncio
+from collections.abc import Callable
+
 from mitmproxy import http
 
+from agentlens.capture.redaction import redact_headers, redact_payload
 from agentlens.models import RawCapture
 from agentlens.providers import PluginRegistry
 
@@ -22,6 +27,9 @@ class AgentLensAddon:
         raw_capture_repo,
         event_bus,
         parser_registry=None,
+        capture_mode: str = "explicit_proxy",
+        capture_label: str | None = None,
+        capture_metadata_factory: Callable[[http.HTTPFlow], dict] | None = None,
     ):
         self.session_id = session_id
         self.session_repo = session_repo
@@ -29,13 +37,16 @@ class AgentLensAddon:
         self.raw_capture_repo = raw_capture_repo
         self.event_bus = event_bus
         self.registry = parser_registry or PluginRegistry.default()
+        self.capture_mode = capture_mode
+        self.capture_label = capture_label
+        self.capture_metadata_factory = capture_metadata_factory
         self._request_times: dict[str, float] = {}  # flow.id -> start time
         self._ttft_times: dict[str, float] = {}  # flow.id -> time to first token
         self._stream_buffers: dict[str, list[bytes]] = {}  # flow.id -> accumulated chunks
 
     def requestheaders(self, flow: http.HTTPFlow):
         """Called when request headers are received."""
-        host = flow.request.pretty_host
+        host = flow.request.headers.get("host", flow.request.pretty_host)
         path = flow.request.path
         headers = dict(flow.request.headers)
 
@@ -151,17 +162,25 @@ class AgentLensAddon:
             except (json.JSONDecodeError, ValueError):
                 response_body = response_text
 
+        capture_metadata = {}
+        if self.capture_metadata_factory is not None:
+            capture_metadata.update(self.capture_metadata_factory(flow))
+        capture_metadata.update(self._partial_response_metadata(flow, raw_bytes))
+
         # Build RawCapture
         raw = RawCapture(
             session_id=self.session_id,
+            capture_mode=self.capture_mode,
+            capture_label=self.capture_label,
+            capture_metadata=capture_metadata,
             provider=provider or "unknown",
-            request_url=flow.request.pretty_url,
+            request_url=self._canonical_request_url(flow),
             request_method=flow.request.method,
-            request_headers={k: v for k, v in flow.request.headers.items()},
-            request_body=request_body,
+            request_headers=redact_headers({k: v for k, v in flow.request.headers.items()}),
+            request_body=redact_payload(request_body),
             response_status=flow.response.status_code,
-            response_headers={k: v for k, v in flow.response.headers.items()},
-            response_body=response_body,
+            response_headers=redact_headers({k: v for k, v in flow.response.headers.items()}),
+            response_body=redact_payload(response_body),
             is_streaming=is_streaming,
             sse_events=sse_events,
         )
@@ -181,6 +200,9 @@ class AgentLensAddon:
                 llm_request = plugin.parse(raw, duration_ms=duration_ms, ttft_ms=ttft_ms)
                 llm_request.session_id = self.session_id
                 llm_request.raw_capture_id = raw.id
+                llm_request.capture_mode = raw.capture_mode
+                llm_request.capture_label = raw.capture_label
+                llm_request.capture_metadata = dict(raw.capture_metadata)
 
                 # Store parsed
                 await self.request_repo.create(llm_request)
@@ -206,6 +228,8 @@ class AgentLensAddon:
                             "duration_ms": llm_request.duration_ms,
                             "is_streaming": llm_request.is_streaming,
                             "status": llm_request.status,
+                            "capture_mode": llm_request.capture_mode,
+                            "capture_label": llm_request.capture_label,
                             "usage": llm_request.usage.model_dump(),
                         },
                     }
@@ -296,3 +320,24 @@ class AgentLensAddon:
             events.append(current_event)
 
         return events
+
+    @staticmethod
+    def _canonical_request_url(flow: http.HTTPFlow) -> str:
+        host = flow.request.headers.get("host")
+        if host:
+            return f"{flow.request.scheme}://{host}{flow.request.path}"
+        return flow.request.pretty_url
+
+    @staticmethod
+    def _partial_response_metadata(flow: http.HTTPFlow, raw_bytes: bytes) -> dict[str, str | bool]:
+        content_length = flow.response.headers.get("content-length", "").strip()
+        if not content_length.isdigit():
+            return {}
+        expected_bytes = int(content_length)
+        actual_bytes = len(raw_bytes)
+        if actual_bytes >= expected_bytes:
+            return {}
+        return {
+            "partial_response": True,
+            "partial_response_reason": f"incomplete body: received {actual_bytes} of {expected_bytes} bytes",
+        }

@@ -50,6 +50,8 @@ export interface LLMRequestSummary {
   duration_ms: number | null;
   provider: string;
   model: string;
+  capture_mode: string;
+  capture_label: string | null;
   status: string;
   usage: {
     input_tokens: number;

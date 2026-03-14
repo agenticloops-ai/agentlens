@@ -12,6 +12,9 @@ async def run_proxy(
     addon: AgentLensAddon,
     host: str = "127.0.0.1",
     port: int = 8080,
+    *,
+    mode: str = "regular",
+    confdir: str | None = None,
 ) -> tuple[DumpMaster, asyncio.Task]:
     """Start mitmproxy programmatically with our addon.
 
@@ -23,6 +26,10 @@ async def run_proxy(
         listen_port=port,
         ssl_insecure=True,  # Don't verify upstream TLS (since we're intercepting)
     )
+    if mode == "transparent":
+        opts.mode = ["transparent"]
+    if confdir:
+        opts.confdir = confdir
     master = DumpMaster(opts)
     master.addons.add(addon)
 

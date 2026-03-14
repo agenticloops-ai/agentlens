@@ -52,6 +52,8 @@ def _request_summary(req: LLMRequest) -> dict[str, Any]:
         "timestamp": req.timestamp.isoformat(),
         "provider": str(req.provider),
         "model": req.model,
+        "capture_mode": req.capture_mode,
+        "capture_label": req.capture_label,
         "duration_ms": req.duration_ms,
         "is_streaming": req.is_streaming,
         "status": str(req.status),

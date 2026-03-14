@@ -8,7 +8,11 @@
       "Bash(du -h /Users/alx/Development/agenticloops-ai/agentlens/samples/*/*/*)",
       "Bash(find /Users/alx/Development/agenticloops-ai/agentlens/samples/ -type f -name \"*.json\" -exec ls -lh {} ;)",
       "Bash(python3 -c \":*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(networksetup -getwebproxy Wi-Fi)",
+      "Bash(networksetup -getsecurewebproxy Wi-Fi)",
+      "Bash(networksetup -setwebproxystate Wi-Fi off)",
+      "Bash(networksetup -setsecurewebproxystate Wi-Fi off)"
     ]
   }
 }

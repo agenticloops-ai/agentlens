@@ -7,6 +7,7 @@ from sqlalchemy import (
     Float,
     Integer,
     MetaData,
+    text,
     String,
     Table,
     Text,
@@ -33,6 +34,9 @@ raw_captures_table = Table(
     Column("id", String, primary_key=True),
     Column("session_id", String, nullable=False),
     Column("timestamp", String, nullable=False),
+    Column("capture_mode", String, nullable=False, default="explicit_proxy"),
+    Column("capture_label", String, nullable=True),
+    Column("capture_metadata", Text, nullable=False, default="{}"),
     Column("provider", String, nullable=False, default="unknown"),
     Column("request_url", String, nullable=False, default=""),
     Column("request_method", String, nullable=False, default="POST"),
@@ -51,6 +55,9 @@ llm_requests_table = Table(
     Column("id", String, primary_key=True),
     Column("session_id", String, nullable=False),
     Column("raw_capture_id", String, nullable=False, default=""),
+    Column("capture_mode", String, nullable=False, default="explicit_proxy"),
+    Column("capture_label", String, nullable=True),
+    Column("capture_metadata", Text, nullable=False, default="{}"),
     Column("timestamp", String, nullable=False),
     Column("duration_ms", Float, nullable=True),
     Column("time_to_first_token_ms", Float, nullable=True),
@@ -77,6 +84,31 @@ llm_requests_table = Table(
 _engines: dict[str, AsyncEngine] = {}
 
 
+_COLUMN_MIGRATIONS: dict[str, list[tuple[str, str]]] = {
+    "raw_captures": [
+        ("capture_mode", "TEXT NOT NULL DEFAULT 'explicit_proxy'"),
+        ("capture_label", "TEXT"),
+        ("capture_metadata", "TEXT NOT NULL DEFAULT '{}'"),
+    ],
+    "llm_requests": [
+        ("capture_mode", "TEXT NOT NULL DEFAULT 'explicit_proxy'"),
+        ("capture_label", "TEXT"),
+        ("capture_metadata", "TEXT NOT NULL DEFAULT '{}'"),
+    ],
+}
+
+
+async def _apply_additive_migrations(engine: AsyncEngine) -> None:
+    async with engine.begin() as conn:
+        for table_name, columns in _COLUMN_MIGRATIONS.items():
+            rows = await conn.execute(text(f"PRAGMA table_info({table_name})"))
+            existing = {row[1] for row in rows.fetchall()}
+            for column_name, definition in columns:
+                if column_name in existing:
+                    continue
+                await conn.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {definition}"))
+
+
 async def init_db(db_path: str) -> AsyncEngine:
     """Create an async engine, create all tables, and return the engine.
 
@@ -95,6 +127,7 @@ async def init_db(db_path: str) -> AsyncEngine:
 
     async with engine.begin() as conn:
         await conn.run_sync(metadata.create_all)
+    await _apply_additive_migrations(engine)
 
     _engines[db_path] = engine
     return engine

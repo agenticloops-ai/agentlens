@@ -209,6 +209,11 @@ function RawJsonTab({ requestId }: { requestId: string }) {
                 SSE · {raw.sse_events.length} events
               </span>
             )}
+            {raw.capture_metadata.partial_response === true && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-900/50 text-amber-300">
+                Partial raw body
+              </span>
+            )}
           </div>
           <span className="text-xs text-gray-500 font-mono">
             Status {raw.response_status}

@@ -120,6 +120,9 @@ def _make_llm_request(
 
     return LLMRequest(
         session_id=session_id,
+        capture_mode="explicit_proxy",
+        capture_label=None,
+        capture_metadata={},
         timestamp=timestamp or datetime(2025, 1, 15, 10, 0, 1),
         duration_ms=duration_ms,
         provider=provider,
@@ -150,6 +153,9 @@ def _make_raw_capture(session_id: str) -> RawCapture:
     return RawCapture(
         session_id=session_id,
         timestamp=datetime(2025, 1, 15, 10, 0, 0),
+        capture_mode="transparent",
+        capture_label="cowork",
+        capture_metadata={"transport": "pf_redirect"},
         provider="anthropic",
         request_url="https://api.anthropic.com/v1/messages",
         request_method="POST",
@@ -258,6 +264,9 @@ class TestRequestRepository:
         assert fetched.id == req.id
         assert fetched.session_id == session.id
         assert fetched.provider == "anthropic"
+        assert fetched.capture_mode == "explicit_proxy"
+        assert fetched.capture_label is None
+        assert fetched.capture_metadata == {}
         assert fetched.model == "claude-3-opus"
         assert fetched.temperature == pytest.approx(0.7)
         assert fetched.max_tokens == 1024
@@ -499,6 +508,9 @@ class TestRawCaptureRepository:
         assert fetched is not None
         assert fetched.id == capture.id
         assert fetched.session_id == session.id
+        assert fetched.capture_mode == "transparent"
+        assert fetched.capture_label == "cowork"
+        assert fetched.capture_metadata == {"transport": "pf_redirect"}
         assert fetched.provider == "anthropic"
         assert fetched.request_url == "https://api.anthropic.com/v1/messages"
         assert fetched.request_method == "POST"
