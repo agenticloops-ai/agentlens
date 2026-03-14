@@ -261,8 +261,14 @@ async def _start(
         console.print("[green]Session finalized. Goodbye![/green]")
 
 
+def _display_host(host: str) -> str:
+    """Return a browser-friendly host (0.0.0.0 → 127.0.0.1)."""
+    return "127.0.0.1" if host == "0.0.0.0" else host
+
+
 def _print_banner(host: str, proxy_port: int, web_port: int, session: Session) -> None:
     """Print startup banner with configuration info."""
+    host = _display_host(host)
     banner = Text()
     banner.append("AgentLens", style="bold magenta")
     banner.append(f" v{__version__}\n\n")
@@ -298,13 +304,14 @@ def _print_transparent_banner(
     target_hosts: list[str],
     target_ips: list[str],
 ) -> None:
+    display = _display_host(web_host)
     banner = Text()
     banner.append("AgentLens", style="bold magenta")
     banner.append(f" v{__version__}\n\n")
     banner.append("  Mode:     ", style="dim")
     banner.append("transparent\n", style="bold cyan")
     banner.append("  Web UI:   ", style="dim")
-    banner.append(f"http://{web_host}:{web_port}\n", style="bold cyan")
+    banner.append(f"http://{display}:{web_port}\n", style="bold cyan")
     banner.append("  Proxy:    ", style="dim")
     banner.append(f"127.0.0.1:{proxy_port}\n", style="bold cyan")
     banner.append("  Session:  ", style="dim")
@@ -551,7 +558,8 @@ async def _wait(
         db_path=db_path,
     ) as ctx:
         # Print wait banner
-        proxy_url = f"http://{host}:{proxy_port}"
+        display = _display_host(host)
+        proxy_url = f"http://{display}:{proxy_port}"
         banner = Text()
         banner.append("AgentLens", style="bold magenta")
         banner.append(" wait\n\n")
@@ -559,7 +567,7 @@ async def _wait(
         banner.append(f"{proxy_url}\n", style="bold cyan")
         if web:
             banner.append("  Web UI:   ", style="dim")
-            banner.append(f"http://{host}:{web_port}\n", style="bold cyan")
+            banner.append(f"http://{display}:{web_port}\n", style="bold cyan")
         banner.append("  Session:  ", style="dim")
         banner.append(f"{ctx.session.name}\n\n", style="bold")
         banner.append("Configure your agent:\n", style="dim")
