@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import clsx from "clsx";
-import { useRequest, useRawCapture } from "../api/hooks";
+import { useRequest, useRawCapture, useSessionRequests } from "../api/hooks";
 import { RequestDetail } from "../components/request/RequestDetail";
 import { SystemPromptBlock } from "../components/conversation/SystemPromptBlock";
 import { ToolDefinitionPanel } from "../components/tools/ToolDefinitionPanel";
@@ -15,9 +15,57 @@ export function RequestDetailPage() {
     sessionId: string;
     requestId: string;
   }>();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>("conversation");
 
   const { data: request, isLoading, error } = useRequest(requestId ?? "");
+  const { data: sessionRequests } = useSessionRequests(sessionId ?? "");
+
+  // Sorted request list + prev/next IDs
+  const { prevId, nextId, currentIndex, total } = useMemo(() => {
+    if (!sessionRequests || !requestId)
+      return { prevId: null, nextId: null, currentIndex: -1, total: 0 };
+    const sorted = [...sessionRequests].sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    );
+    const idx = sorted.findIndex((r) => r.id === requestId);
+    return {
+      prevId: idx > 0 ? sorted[idx - 1]!.id : null,
+      nextId:
+        idx >= 0 && idx < sorted.length - 1 ? sorted[idx + 1]!.id : null,
+      currentIndex: idx,
+      total: sorted.length,
+    };
+  }, [sessionRequests, requestId]);
+
+  const goTo = useCallback(
+    (id: string | null) => {
+      if (id && sessionId) navigate(`/session/${sessionId}/request/${id}`);
+    },
+    [sessionId, navigate],
+  );
+
+  // Keyboard shortcuts: left/right arrows for prev/next
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
+        return;
+      if (e.key === "ArrowLeft" && prevId) {
+        e.preventDefault();
+        goTo(prevId);
+      }
+      if (e.key === "ArrowRight" && nextId) {
+        e.preventDefault();
+        goTo(nextId);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [prevId, nextId, goTo]);
 
   if (isLoading) {
     return (
@@ -47,27 +95,90 @@ export function RequestDetailPage() {
 
   return (
     <div className="space-y-4">
-      {/* Back link */}
+      {/* Navigation bar */}
       {sessionId && (
-        <Link
-          to={`/session/${sessionId}`}
-          className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-200 transition-colors"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+        <div className="flex items-center justify-between">
+          <Link
+            to={`/session/${sessionId}`}
+            className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-200 transition-colors"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          Back to session
-        </Link>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Back to session
+          </Link>
+
+          {/* Prev / Next */}
+          <div className="flex items-center gap-2">
+            {total > 0 && (
+              <span className="text-xs text-gray-500 mr-1">
+                {currentIndex + 1} / {total}
+              </span>
+            )}
+            <button
+              disabled={!prevId}
+              onClick={() => goTo(prevId)}
+              className={clsx(
+                "inline-flex items-center gap-1 px-2.5 py-1 rounded text-sm transition-colors",
+                prevId
+                  ? "text-gray-300 hover:bg-gray-700 hover:text-gray-100"
+                  : "text-gray-600 cursor-not-allowed",
+              )}
+              title="Previous request (Left arrow)"
+            >
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              Prev
+            </button>
+            <button
+              disabled={!nextId}
+              onClick={() => goTo(nextId)}
+              className={clsx(
+                "inline-flex items-center gap-1 px-2.5 py-1 rounded text-sm transition-colors",
+                nextId
+                  ? "text-gray-300 hover:bg-gray-700 hover:text-gray-100"
+                  : "text-gray-600 cursor-not-allowed",
+              )}
+              title="Next request (Right arrow)"
+            >
+              Next
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Header bar */}

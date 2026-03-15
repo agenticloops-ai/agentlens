@@ -55,6 +55,8 @@ export function SessionDetailPage() {
   const renameSession = useRenameSession();
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -69,7 +71,37 @@ export function SessionDetailPage() {
     setEditingName(false);
   };
 
-  const safeRequests = requests ?? [];
+  // Debounce search query to avoid spamming API
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const { data: filteredRequests } = useSessionRequests(
+    sessionId ?? "",
+    debouncedQuery ? { q: debouncedQuery } : undefined,
+  );
+
+  // When searching, show filtered results; otherwise show all
+  const safeRequests = debouncedQuery ? (filteredRequests ?? []) : (requests ?? []);
+
+  // Keyboard shortcut: / to focus search
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
+        return;
+      if (e.key === "/") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const getProvider = useProviderMeta();
 
@@ -147,6 +179,55 @@ export function SessionDetailPage() {
               sessionId={sessionId ?? ""}
               sessionName={session.name || "session"}
             />
+          </div>
+
+          {/* Search bar */}
+          <div className="px-3 py-2 border-b border-gray-700">
+            <div className="relative">
+              <svg
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                />
+              </svg>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setSearchQuery("");
+                    searchInputRef.current?.blur();
+                  }
+                }}
+                placeholder="Search by tool, model, content... (press /)"
+                className="w-full pl-8 pr-8 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-200 placeholder-gray-500 outline-none focus:border-gray-500 transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {debouncedQuery && (
+              <div className="text-[11px] text-gray-500 mt-1">
+                {safeRequests.length} result{safeRequests.length !== 1 ? "s" : ""}
+                {requests ? ` of ${requests.length}` : ""}
+              </div>
+            )}
           </div>
 
           {/* Timeline rows */}

@@ -66,6 +66,8 @@ export interface LLMRequestSummary {
   has_tools: boolean;
   /** Whether the response contains thinking/reasoning blocks. */
   has_thinking: boolean;
+  /** Names of tools defined or invoked in this request. */
+  tool_names: string[];
 }
 
 // ---------------------------------------------------------------------------

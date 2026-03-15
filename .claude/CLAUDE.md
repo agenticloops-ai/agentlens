@@ -67,6 +67,14 @@ Database uses SQLAlchemy Core (not ORM) with async aiosqlite. Datetimes stored a
 - Database tests use in-memory SQLite
 - Arrange-Act-Assert pattern, test classes group related cases
 
+## Verification
+
+After making UI changes, verify with Playwright MCP (configured in `.claude/mcp.json`):
+
+1. Start the dev server: `make proxy` (proxy :8080 + web UI :8081)
+2. Use Playwright MCP tools to navigate to `http://127.0.0.1:8081`, take snapshots, click elements, and verify the UI renders correctly
+3. Run `make test` and `make lint` to ensure nothing is broken
+
 ## Dependencies
 
 - Python ≥3.11, Node ≥18

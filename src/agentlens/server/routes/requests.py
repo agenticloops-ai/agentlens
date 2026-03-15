@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from agentlens.models.base import LLMRequest, ThinkingContent
+from agentlens.models.base import LLMRequest, ThinkingContent, ToolUseContent
 from agentlens.models.enums import ContentBlockType, MessageRole
 from agentlens.storage.repositories import (
     RawCaptureRepository,
@@ -46,6 +46,19 @@ def _request_summary(req: LLMRequest) -> dict[str, Any]:
         if has_thinking:
             break
 
+    # Collect tool names: defined tools + actually invoked tool_use calls.
+    tool_names: list[str] = []
+    seen: set[str] = set()
+    for td in req.tools:
+        if td.name not in seen:
+            tool_names.append(td.name)
+            seen.add(td.name)
+    for msg in req.response_messages:
+        for block in msg.content:
+            if isinstance(block, ToolUseContent) and block.tool_name not in seen:
+                tool_names.append(block.tool_name)
+                seen.add(block.tool_name)
+
     return {
         "id": req.id,
         "session_id": req.session_id,
@@ -67,6 +80,7 @@ def _request_summary(req: LLMRequest) -> dict[str, Any]:
         "preview_text": preview_text,
         "has_tools": len(req.tools) > 0,
         "has_thinking": has_thinking,
+        "tool_names": tool_names,
     }
 
 
@@ -81,6 +95,7 @@ async def list_requests(
     provider: str | None = Query(default=None),
     model: str | None = Query(default=None),
     has_tools: bool | None = Query(default=None),
+    q: str | None = Query(default=None),
     offset: int = Query(default=0, ge=0),
     limit: int | None = Query(default=None, ge=1, le=5000),
     request_repo: RequestRepository = Depends(get_request_repo),
@@ -91,6 +106,7 @@ async def list_requests(
         provider=provider,
         model=model,
         has_tools=has_tools,
+        search=q,
         offset=offset,
         limit=limit,
     )

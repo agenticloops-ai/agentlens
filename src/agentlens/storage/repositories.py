@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import delete, func, insert, select, update
+from sqlalchemy import delete, func, insert, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from agentlens.models.base import (
@@ -356,6 +356,7 @@ class RequestRepository:
         provider: str | None = None,
         model: str | None = None,
         has_tools: bool | None = None,
+        search: str | None = None,
         offset: int = 0,
         limit: int | None = None,
     ) -> list[LLMRequest]:
@@ -370,6 +371,19 @@ class RequestRepository:
             stmt = stmt.where(t.c.tools != "[]")
         elif has_tools is False:
             stmt = stmt.where(t.c.tools == "[]")
+
+        if search is not None:
+            pattern = f"%{search}%"
+            stmt = stmt.where(
+                or_(
+                    t.c.model.ilike(pattern),
+                    t.c.provider.ilike(pattern),
+                    t.c.tools.ilike(pattern),
+                    t.c.messages.ilike(pattern),
+                    t.c.response_messages.ilike(pattern),
+                    t.c.system_prompt.ilike(pattern),
+                )
+            )
 
         stmt = stmt.order_by(t.c.timestamp.asc()).offset(offset)
         if limit is not None:

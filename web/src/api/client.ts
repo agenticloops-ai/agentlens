@@ -75,6 +75,7 @@ export const api = {
         provider?: string;
         model?: string;
         has_tools?: boolean;
+        q?: string;
         offset?: number;
         limit?: number;
       },
