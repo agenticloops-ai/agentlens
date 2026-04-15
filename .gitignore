@@ -14,6 +14,7 @@ venv/
 # Node / Frontend
 node_modules/
 web/dist/
+web/tsconfig.tsbuildinfo
 src/agentlens/static
 
 # Database
