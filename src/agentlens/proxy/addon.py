@@ -155,7 +155,7 @@ class AgentLensAddon:
 
         if is_streaming:
             sse_events = self._split_sse(response_text)
-            response_body = ""
+            response_body = response_text
         else:
             try:
                 response_body = json.loads(response_text)
@@ -182,7 +182,7 @@ class AgentLensAddon:
             response_headers=redact_headers({k: v for k, v in flow.response.headers.items()}),
             response_body=redact_payload(response_body),
             is_streaming=is_streaming,
-            sse_events=sse_events,
+            sse_events=[redact_payload(evt) for evt in sse_events],
         )
 
         # Store and parse asynchronously
