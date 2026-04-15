@@ -7,6 +7,7 @@ import { SystemPromptBlock } from "../components/conversation/SystemPromptBlock"
 import { ToolDefinitionPanel } from "../components/tools/ToolDefinitionPanel";
 import { ConversationThread } from "../components/conversation/ConversationThread";
 import { JsonViewer } from "../components/common/JsonViewer";
+import { generateCurl } from "../utils/curl";
 
 type Tab = "conversation" | "raw";
 
@@ -274,6 +275,24 @@ function ConversationTab({
 
 function RawJsonTab({ requestId }: { requestId: string }) {
   const { data: raw, isLoading, error } = useRawCapture(requestId);
+  const [curlCopied, setCurlCopied] = useState(false);
+
+  const curlCommand = useMemo(() => (raw ? generateCurl(raw) : ""), [raw]);
+
+  const handleCopyCurl = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(curlCommand);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = curlCommand;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+    setCurlCopied(true);
+    setTimeout(() => setCurlCopied(false), 2000);
+  }, [curlCommand]);
 
   if (isLoading) {
     return (
@@ -291,7 +310,7 @@ function RawJsonTab({ requestId }: { requestId: string }) {
     );
   }
 
-  // For streaming responses, response_body is empty — show SSE events instead
+  // For streaming responses, show SSE events for structured view
   const hasSSE = raw.is_streaming && raw.sse_events && raw.sse_events.length > 0;
   const responseData = hasSSE ? raw.sse_events : raw.response_body;
 
@@ -300,7 +319,25 @@ function RawJsonTab({ requestId }: { requestId: string }) {
       {/* Request panel */}
       <div className="rounded-lg bg-gray-800 border border-gray-700 overflow-hidden">
         <div className="px-4 py-2.5 border-b border-gray-700 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-300">Request</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-300">Request</span>
+            <button
+              onClick={handleCopyCurl}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] text-gray-400 hover:text-gray-200 bg-gray-700/50 hover:bg-gray-700 transition-colors"
+              title="Copy as cURL command"
+            >
+              {curlCopied ? (
+                <svg className="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              )}
+              {curlCopied ? "Copied!" : "cURL"}
+            </button>
+          </div>
           <span className="text-xs text-gray-500 font-mono">
             {raw.request_method} {raw.request_url}
           </span>
