@@ -16,6 +16,7 @@ from rich.console import Console
 from rich.text import Text
 
 from agentlens import __version__
+from agentlens.export.writer import DEFAULT_FORMATS
 from agentlens.capture import (
     build_pf_rules,
     clear_anchor,
@@ -504,7 +505,7 @@ async def _start_transparent(
 @app.command()
 def wait(
     output: str = typer.Option("results", help="Output directory for exported files"),
-    formats: str = typer.Option("json,markdown,csv", help="Comma-separated export formats"),
+    formats: str = typer.Option(",".join(DEFAULT_FORMATS), help="Comma-separated export formats"),
     session_name: str = typer.Option("", help="Override auto-generated session name"),
     proxy_port: int = typer.Option(8080, help="Port for the MITM proxy"),
     web_port: int = typer.Option(8081, help="Port for the web UI"),
@@ -642,7 +643,7 @@ async def _wait(
 def export(
     session_identifier: str = typer.Argument(help="Session ID or session name"),
     output_dir: str = typer.Option("exports", help="Output directory"),
-    formats: str = typer.Option("json,markdown,csv", help="Comma-separated export formats"),
+    formats: str = typer.Option(",".join(DEFAULT_FORMATS), help="Comma-separated export formats"),
     db_path: str = typer.Option(_DEFAULT_DB_PATH, help="Path to SQLite database"),
 ):
     """Export a session from the database by ID or name."""
